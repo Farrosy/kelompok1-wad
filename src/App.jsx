@@ -1,11 +1,5 @@
-import { useState } from "react";
+import AppRoutes from "./routes/AppRoutes";
 
-const App = () => {
-  return (
-    <>
-      <p>halo</p>
-    </>
-  );
-};
-
-export default App;
+export default function App() {
+  return <AppRoutes />;
+}
