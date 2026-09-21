@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import LoginForm from "../components/LoginForm";
+import barberOneLogo from "../assets/images/logo-barber-one.png";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -10,9 +11,7 @@ export default function LoginPage() {
       {/* Top Navigation Bar */}
       <header className="barber-navbar">
         <div className="nav-brand">
-          <div className="brand-badge">
-            <span>KRAFT</span>
-          </div>
+          <img src={barberOneLogo} alt="Barber One Logo" className="nav-brand-logo" />
           <span className="brand-name">BARBER ONE</span>
         </div>
 
