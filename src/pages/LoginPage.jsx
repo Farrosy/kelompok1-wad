@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import Footer from "../components/Footer";
+import AuthFooter from "../components/layout/AuthFooter";
 import LoginForm from "../components/LoginForm";
 import barberOneLogo from "../assets/images/logo-barber-one.png";
 
@@ -86,7 +86,7 @@ export default function LoginPage() {
         </div>
       </main>
 
-      <Footer />
+      <AuthFooter />
     </div>
   );
 }
