@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { demoAccount } from "../config/demoAccount";
+
+import { demoAccounts } from "../config/demoAccount";
 
 export default function LoginForm({ onSuccess }) {
   const [identifier, setIdentifier] = useState("");
@@ -17,18 +18,18 @@ export default function LoginForm({ onSuccess }) {
       return;
     }
 
-    // Mendukung login via nomor demo atau bila demoAccount memiliki field email
-    const isMatch =
+    const account = demoAccounts.find((demoAccount) =>
       (cleanInput === demoAccount.phone || cleanInput === demoAccount.email) &&
-      password === demoAccount.password;
+      password === demoAccount.password
+    );
 
-    if (!isMatch) {
+    if (!account) {
       setError("Nomor WhatsApp/Surel atau kata sandi tidak sesuai.");
       return;
     }
 
     setError("");
-    onSuccess();
+    onSuccess(account);
   }
 
   return (
@@ -115,7 +116,8 @@ export default function LoginForm({ onSuccess }) {
 
       {/* Demo Account Helper */}
       <div className="demo-account-hint">
-        Akun demo: <strong>{demoAccount.phone}</strong> · sandi: <strong>{demoAccount.password}</strong>
+        Akun demo user: <strong>{demoAccounts[0].phone}</strong> · sandi: <strong>{demoAccounts[0].password}</strong>
+        <br />Akun demo kasir: <strong>{demoAccounts[1].phone}</strong> · sandi: <strong>{demoAccounts[1].password}</strong>
       </div>
     </form>
   );

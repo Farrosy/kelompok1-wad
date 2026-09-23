@@ -1,6 +1,7 @@
-import { NavLink, useNavigate } from "react-router-dom";
-import "./Navigation.css";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+
 import barberOneLogo from "../../assets/images/logo-barber-one.png";
+import "./Navigation.css";
 
 const navigationItems = [
   { to: "/dashboard", label: "Beranda & Booking", end: true },
@@ -9,6 +10,10 @@ const navigationItems = [
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const isCashier = useLocation().pathname.startsWith("/kasir");
+  const items = isCashier
+    ? [{ to: "/kasir", label: "Ringkasan Kasir", end: true }]
+    : navigationItems;
 
   return (
     <header className="dashboard-navbar">
@@ -17,13 +22,17 @@ export default function Navbar() {
         BARBER ONE
       </NavLink>
       <nav aria-label="Navigasi dashboard" className="dashboard-nav-links">
-        {navigationItems.map(({ to, label, end }) => (
+        {items.map(({ to, label, end }) => (
           <NavLink className={({ isActive }) => `dashboard-nav-link${isActive ? " is-active" : ""}`} end={end} key={to} to={to}>
             {label}
           </NavLink>
         ))}
       </nav>
-      <button className="dashboard-logout" type="button" onClick={() => navigate("/")}>Logout</button>
+      {isCashier && <span className="cashier-role-badge">KASIR</span>}
+      <button className="dashboard-logout" type="button" onClick={() => {
+        localStorage.removeItem("barber-one-role");
+        navigate("/");
+      }}>Logout</button>
     </header>
   );
 }
