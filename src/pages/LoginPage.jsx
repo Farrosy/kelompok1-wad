@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthFooter from "../components/layout/AuthFooter";
 import LoginForm from "../components/LoginForm";
 import barberOneLogo from "../assets/images/logo-barber-one.png";
@@ -10,20 +10,13 @@ export default function LoginPage() {
     <div className="barber-layout">
       {/* Top Navigation Bar */}
       <header className="barber-navbar">
-        <div className="nav-brand">
+        <Link className="nav-brand" to="/dashboard" aria-label="Barber One, Beranda & Booking">
           <img src={barberOneLogo} alt="Barber One Logo" className="nav-brand-logo" />
           <span className="brand-name">BARBER ONE</span>
-        </div>
+        </Link>
 
-        <nav className="nav-menu">
-          <a href="#services" className="nav-link">SERVICES &amp; ATELIER</a>
-          <a href="#concierge" className="nav-link">CONCIERGE</a>
-          <span className="nav-badge-signin">SIGN IN</span>
-          <button type="button" className="nav-avatar-btn" aria-label="Profil">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-              <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z" />
-            </svg>
-          </button>
+        <nav className="nav-menu" aria-label="Navigasi utama">
+          <Link to="/dashboard" className="nav-link nav-link-button">Beranda &amp; Booking</Link>
         </nav>
       </header>
 
@@ -44,7 +37,7 @@ export default function LoginPage() {
           <p className="portal-subtitle">PORTAL PELANGGAN</p>
           <h1 id="login-heading" className="card-title">Masuk ke Akun Anda</h1>
           <p className="card-desc">
-            Kelola reservasi cukur dan pantau tiket antrean BARBER ONE secara langsung.
+            Kelola reservasi cukur dan pantau tiket antrean <b>BARBER ONE</b> secara langsung.
           </p>
 
           <LoginForm onSuccess={() => navigate("/dashboard")} />
@@ -77,11 +70,6 @@ export default function LoginPage() {
         {/* Status Bar Under Card */}
         <div className="terminal-status-bar">
           <div className="status-item">
-            <span className="status-indicator"></span>
-            <span>TERMINAL TERHUBUNG &amp; AMAN</span>
-          </div>
-          <div className="status-item atelier-ver">
-            BARBER ONE ATELIER V2.4
           </div>
         </div>
       </main>

@@ -4,7 +4,7 @@
   color: #797168;
   display: flex;
   font-size: 13px;
-  justify-content: space-between;
+  justify-content: center;
   padding: 24px max(24px, calc((100vw - 1120px) / 2));
 }
 
@@ -19,7 +19,7 @@
   color: #797168;
   display: flex;
   font-size: 13px;
-  justify-content: space-between;
+  justify-content: center;
   padding: 24px max(24px, calc((100vw - 1120px) / 2));
 }
 
