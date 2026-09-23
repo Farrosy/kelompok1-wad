@@ -27,8 +27,38 @@
   margin: 0;
 }
 
+.account-page-sections {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 32px;
+}
+
+.account-section {
+  background: #fff;
+  border: 1px solid #eeece7;
+  border-radius: 10px;
+  padding: 24px;
+}
+
+.account-section h2 {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+
+.account-section p {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
 @media (max-width: 640px) {
   .dashboard-content {
     padding: 32px 20px;
+  }
+
+  .account-page-sections {
+    grid-template-columns: 1fr;
   }
 }

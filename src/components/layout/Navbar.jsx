@@ -4,8 +4,7 @@ import barberOneLogo from "../../assets/images/logo-barber-one.png";
 
 const navigationItems = [
   { to: "/dashboard", label: "Beranda & Booking", end: true },
-  { to: "/dashboard/tickets", label: "Tiket" },
-  { to: "/dashboard/profile", label: "Profil Saya" },
+  { to: "/dashboard/tickets", label: "Tiket & Profil Saya" },
 ];
 
 export default function Navbar() {

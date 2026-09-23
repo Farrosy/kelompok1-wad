@@ -36,8 +36,7 @@ export default function LoginForm({ onSuccess }) {
       {/* Field: Phone / Email */}
       <div className="form-group">
         <div className="form-label-row">
-          <label htmlFor="identifier">Nomor WhatsApp atau Surel</label>
-          <span className="label-badge-verified">terverifikasi</span>
+          <label htmlFor="identifier">Nomor Telepon</label>
         </div>
         <div className="input-wrapper">
           <span className="input-icon" aria-hidden="true">
@@ -50,7 +49,7 @@ export default function LoginForm({ onSuccess }) {
             id="identifier"
             name="identifier"
             type="text"
-            placeholder="0812–3456–7890 atau nama@email.com"
+            placeholder="0812–3456–7890"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
           />
@@ -103,7 +102,6 @@ export default function LoginForm({ onSuccess }) {
           />
           <span className="checkbox-label">Ingat saya di perangkat ini</span>
         </label>
-        <span className="tls-protocol">PROTOKOL TLS 256–BIT</span>
       </div>
 
       {error && <p className="form-error" role="alert">{error}</p>}
@@ -114,19 +112,6 @@ export default function LoginForm({ onSuccess }) {
         <span className="btn-arrow">→</span>
       </button>
 
-      {/* WhatsApp OTP Button */}
-      <button
-        type="button"
-        className="btn-secondary-cream"
-        onClick={() => alert("Fitur OTP WhatsApp akan segera hadir.")}
-      >
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          <line x1="8" y1="9" x2="16" y2="9" />
-          <line x1="8" y1="13" x2="14" y2="13" />
-        </svg>
-        <span>MASUK CEPAT DENGAN WHATSAPP OTP</span>
-      </button>
 
       {/* Demo Account Helper */}
       <div className="demo-account-hint">
