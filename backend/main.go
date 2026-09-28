@@ -41,7 +41,7 @@ func main() {
 		fmt.Fprintln(w, "Hello World!")
 	})
 
-	fmt.Println("Backend berjalan di http://localhost:3000")
+	fmt.Println("Backend berjalan di http:// localhost:3000")
 	if err := http.ListenAndServe(":3000", nil); err != nil {
 		fmt.Println("Server gagal:", err)
 	}
