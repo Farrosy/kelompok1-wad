@@ -40,6 +40,7 @@ body {
   gap: 16px;
 }
 
+
 .nav-brand {
   display: flex;
   align-items: center;
@@ -61,6 +62,7 @@ body {
   color: #1a1714;
   white-space: nowrap;
 }
+
 
 .nav-menu {
   display: flex;
@@ -445,9 +447,384 @@ body {
   background-color: #a46e3a;
 }
 
+/* CASHIER DASHBOARD  */
+.cashier-dashboard-page {
+  background-color: var(--bg-page);
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 1240px; /* Batas lebar konten agar proporsional */
+  min-height: calc(100vh - 140px);
+  padding: 24px 24px 48px;
+  width: 100%; /* Kunci agar melebar penuh */
+}
+
+/* Subbar Action & Date */
+.cashier-subbar {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.subbar-left,
+.subbar-right {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.active-station-badge {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e7e3dc;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  color: #1c1917;
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+  padding: 7px 14px;
+  white-space: nowrap;
+}
+
+.dot-active {
+  background: #9a6d38;
+  border-radius: 50%;
+  display: inline-block;
+  height: 7px;
+  width: 7px;
+}
+
+.subbar-subtext {
+  color: #78716c;
+  font-size: 12px;
+}
+
+.current-date-tag {
+  align-items: center;
+  color: #292524;
+  display: flex;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.current-date-tag svg {
+  color: #78716c;
+}
+
+.btn-subbar-refresh {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #dcd6ce;
+  border-radius: 6px;
+  color: #292524;
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 6px;
+  padding: 8px 14px;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.btn-subbar-refresh:hover {
+  background-color: #f7f5f0;
+}
+
+.btn-subbar-add {
+  align-items: center;
+  background: #000000;
+  border: none;
+  border-radius: 6px;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 6px;
+  padding: 8px 16px;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+
+.btn-subbar-add:hover {
+  opacity: 0.88;
+}
+
+/* Grid 4 Kartu Metrik */
+.cashier-metrics-grid {
+  box-sizing: border-box;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, 1fr); /* 4 kolom sejajar horizontal */
+  margin-bottom: 28px;
+  width: 100%;
+}
+
+.metric-card {
+  background: #ffffff;
+  border: 1px solid #ede8e1;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 116px;
+  padding: 18px 20px;
+}
+
+.metric-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.metric-title {
+  color: #78716c;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.metric-icon-box {
+  align-items: center;
+  background: var(--gold-light);
+  border-radius: 6px;
+  color: var(--gold-accent);
+  display: inline-flex;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.metric-value-row {
+  align-items: baseline;
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  white-space: nowrap;
+}
+
+.metric-number {
+  color: #1c1917;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.metric-slash {
+  color: #78716c;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.metric-currency-text {
+  color: #1c1917;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.metric-label {
+  color: #78716c;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.metric-footer-note {
+  align-items: center;
+  color: var(--gold-accent);
+  display: flex;
+  font-size: 11.5px;
+  font-weight: 500;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.chair-indicator-row {
+  align-items: center;
+  display: flex;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.chair-dot {
+  border-radius: 50%;
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+}
+
+.chair-dot.filled {
+  background-color: var(--gold-accent);
+}
+
+.chair-dot.empty {
+  background-color: #e7e5e0;
+}
+
+.chair-note {
+  color: #78716c;
+  font-size: 11.5px;
+  margin-left: 4px;
+}
+
+.metric-trend-row {
+  align-items: center;
+  color: #78716c;
+  display: flex;
+  font-size: 11.5px;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.trend-arrow {
+  color: #1c1917;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.metric-trend-row strong {
+  color: #1c1917;
+}
+
+.metric-omzet-footer {
+  align-items: center;
+  color: #78716c;
+  display: flex;
+  font-size: 11px;
+  justify-content: space-between;
+  white-space: nowrap;
+}
+
+.open-cash-link {
+  color: var(--gold-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.open-cash-link:hover {
+  text-decoration: underline;
+}
+
+/* Card Antrean Booking Table */
+.cashier-queue-card {
+  background: #ffffff;
+  border: 1px solid #ede8e1;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02);
+  box-sizing: border-box;
+  padding: 24px 28px;
+  width: 100%;
+}
+
+.cashier-queue-heading {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.cashier-queue-heading h2 {
+  color: #1c1917;
+  font-family: var(--font-serif);
+  font-size: 20px;
+  margin: 0 0 4px;
+}
+
+.cashier-queue-heading p {
+  color: #78716c;
+  font-size: 13px;
+  margin: 0;
+}
+
+.cashier-refresh {
+  background: #ffffff;
+  border: 1px solid #dcd6ce;
+  border-radius: 6px;
+  color: #292524;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 14px;
+}
+
+.cashier-table-wrap {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.cashier-table {
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+  width: 100%;
+}
+
+.cashier-table th {
+  border-bottom: 1px solid #f0eee9;
+  color: #78716c;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 12px 16px;
+}
+
+.cashier-table td {
+  border-bottom: 1px solid #f7f6f2;
+  color: #292524;
+  padding: 14px 16px;
+}
+
+.cashier-ticket {
+  font-weight: 700;
+}
+
+.cashier-status {
+  border-radius: 20px;
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+}
+
+.cashier-status.is-waiting {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.cashier-status.is-confirmed {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
 /* Responsiveness */
+@media (max-width: 1024px) {
+  .cashier-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 640px) {
-  .barber-navbar {
+  .cashier-subbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .subbar-left,
+  .subbar-right {
+    justify-content: space-between;
+  }
+  .cashier-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+    .barber-navbar {
     padding: 14px 16px;
     flex-wrap: nowrap;
     justify-content: space-between;

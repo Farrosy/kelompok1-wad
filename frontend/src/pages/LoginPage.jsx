@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
+
+import barberOneLogo from "../assets/images/logo-barber-one.png";
 import AuthFooter from "../components/layout/AuthFooter";
 import LoginForm from "../components/LoginForm";
-import barberOneLogo from "../assets/images/logo-barber-one.png";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -40,7 +41,10 @@ export default function LoginPage() {
             Kelola reservasi cukur dan pantau tiket antrean <b>BARBER ONE</b> secara langsung.
           </p>
 
-          <LoginForm onSuccess={() => navigate("/dashboard")} />
+          <LoginForm onSuccess={(account) => {
+            localStorage.setItem("barber-one-role", account.role);
+            navigate(account.role === "kasir" ? "/kasir" : "/dashboard");
+          }} />
 
           <div className="card-footer-info">
             <p className="register-prompt">
