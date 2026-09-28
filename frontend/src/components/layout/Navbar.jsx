@@ -29,6 +29,7 @@ export default function Navbar() {
 
   function handleLogout() {
     localStorage.removeItem("barber-one-role");
+    sessionStorage.removeItem("barber-one-role");
     setIsProfileOpen(false);
     navigate("/");
   }
@@ -175,6 +176,7 @@ export default function Navbar() {
         type="button"
         onClick={() => {
           localStorage.removeItem("barber-one-role");
+          sessionStorage.removeItem("barber-one-role");
           navigate("/");
         }}
       >

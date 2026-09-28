@@ -259,6 +259,10 @@ body {
   box-sizing: border-box;
 }
 
+.register-form .input-wrapper input {
+  padding-left: 14px;
+}
+
 .input-wrapper input::placeholder {
   color: #b5afa7;
   font-size: 13px;
@@ -336,6 +340,15 @@ body {
   opacity: 0.9;
 }
 
+.btn-primary-dark:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.register-submit-link {
+  text-decoration: none;
+}
+
 .btn-arrow {
   font-size: 15px;
   transition: transform 0.2s;
@@ -373,12 +386,78 @@ body {
   margin: 0;
 }
 
-/* Demo account reminder */
-.demo-account-hint {
-  font-size: 11px;
-  color: #8a8176;
-  text-align: center;
-  margin-top: 4px;
+.toast {
+  align-items: center;
+  animation: toast-enter 180ms ease-out;
+  border: 1px solid;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(28, 25, 23, 0.16);
+  display: flex;
+  gap: 11px;
+  max-width: min(420px, calc(100vw - 36px));
+  padding: 14px 16px;
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  z-index: 1000;
+}
+
+.toast-success {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.toast-error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.toast-icon {
+  align-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  display: inline-flex;
+  flex: 0 0 22px;
+  font-size: 13px;
+  font-weight: 700;
+  height: 22px;
+  justify-content: center;
+  width: 22px;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.toast-close {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font-size: 21px;
+  line-height: 1;
+  opacity: 0.75;
+  padding: 0 2px;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+@keyframes toast-enter {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 520px) {
+  .toast {
+    right: 12px;
+    top: 12px;
+  }
 }
 
 /* Card bottom info */
