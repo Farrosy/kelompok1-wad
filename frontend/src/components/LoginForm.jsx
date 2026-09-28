@@ -1,35 +1,44 @@
 import { useState } from "react";
-
-import { demoAccounts } from "../config/demoAccount";
+import { API_BASE_URL } from "../config/api";
+import { useToast } from "./ToastProvider";
 
 export default function LoginForm({ onSuccess }) {
+  const showToast = useToast();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-
     const cleanInput = identifier.trim();
     if (!cleanInput || !password) {
-      setError("Nomor WhatsApp/Surel dan kata sandi wajib diisi.");
+      showToast("error", "Nomor telepon/email dan kata sandi wajib diisi.");
       return;
     }
 
-    const account = demoAccounts.find((demoAccount) =>
-      (cleanInput === demoAccount.phone || cleanInput === demoAccount.email) &&
-      password === demoAccount.password
-    );
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: cleanInput, password }),
+      });
+      const data = await response.json().catch(() => ({}));
 
-    if (!account) {
-      setError("Nomor WhatsApp/Surel atau kata sandi tidak sesuai.");
-      return;
+      if (!response.ok) {
+        showToast("error", data.error || "Login gagal. Periksa kembali data Anda.");
+        return;
+      }
+
+      showToast("success", `Login berhasil. Selamat datang, ${data.user.name}.`);
+      onSuccess(data.user, rememberMe);
+    } catch {
+      showToast("error", "Tidak dapat terhubung ke server. Pastikan backend berjalan di port 3000.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setError("");
-    onSuccess(account);
   }
 
   return (
@@ -37,7 +46,7 @@ export default function LoginForm({ onSuccess }) {
       {/* Field: Phone / Email */}
       <div className="form-group">
         <div className="form-label-row">
-          <label htmlFor="identifier">Nomor Telepon</label>
+          <label htmlFor="identifier">Nomor Telepon atau Email</label>
         </div>
         <div className="input-wrapper">
           <span className="input-icon" aria-hidden="true">
@@ -50,9 +59,11 @@ export default function LoginForm({ onSuccess }) {
             id="identifier"
             name="identifier"
             type="text"
+            autoComplete="username"
             placeholder="0812–3456–7890"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
+            required
           />
         </div>
       </div>
@@ -78,6 +89,7 @@ export default function LoginForm({ onSuccess }) {
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
           <button
             type="button"
@@ -105,20 +117,11 @@ export default function LoginForm({ onSuccess }) {
         </label>
       </div>
 
-      {error && <p className="form-error" role="alert">{error}</p>}
-
       {/* Submit Button */}
-      <button type="submit" className="btn-primary-dark">
-        <span>MASUK SEKARANG</span>
-        <span className="btn-arrow">→</span>
+      <button type="submit" className="btn-primary-dark" disabled={isSubmitting}>
+        <span>{isSubmitting ? "SEDANG MASUK..." : "MASUK SEKARANG"}</span>
+        {!isSubmitting && <span className="btn-arrow">→</span>}
       </button>
-
-
-      {/* Demo Account Helper */}
-      <div className="demo-account-hint">
-        Akun demo user: <strong>{demoAccounts[0].phone}</strong> · sandi: <strong>{demoAccounts[0].password}</strong>
-        <br />Akun demo kasir: <strong>{demoAccounts[1].phone}</strong> · sandi: <strong>{demoAccounts[1].password}</strong>
-      </div>
     </form>
   );
 }
