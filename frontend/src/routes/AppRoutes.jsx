@@ -3,9 +3,9 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import CashierDashboard from "../pages/Cashier/CashierDashboard";
 import HomeBookingPage from "../pages/User/HomeBookingPage";
-import LoginPage from "../pages/LoginPage";
+import LoginPage from "..//pages/Auth/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
-import TicketsPage from "../pages/TicketsPage";
+import TicketsPage from "../pages/User/TicketsPage";
 
 export default function AppRoutes() {
   return (
