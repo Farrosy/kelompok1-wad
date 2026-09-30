@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 
-import barberOneLogo from "../assets/images/logo-barber-one.png";
-import AuthFooter from "../components/layout/AuthFooter";
-import LoginForm from "../components/LoginForm";
+import barberOneLogo from "../../assets/images/logo-barber-one.png";
+import AuthFooter from "../../components/layout/AuthFooter";
+import LoginForm from "../../components/LoginForm";
 
 export default function LoginPage() {
   const navigate = useNavigate();
