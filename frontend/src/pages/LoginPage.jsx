@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import barberOneLogo from "../assets/images/logo-barber-one.png";
 import AuthFooter from "../components/layout/AuthFooter";
@@ -6,6 +6,11 @@ import LoginForm from "../components/LoginForm";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const storedRole = localStorage.getItem("barber-one-role") || sessionStorage.getItem("barber-one-role");
+
+  if (storedRole) {
+    return <Navigate to={storedRole === "kasir" ? "/kasir" : "/dashboard"} replace />;
+  }
 
   return (
     <div className="barber-layout">
@@ -41,15 +46,18 @@ export default function LoginPage() {
             Kelola reservasi cukur dan pantau tiket antrean <b>BARBER ONE</b> secara langsung.
           </p>
 
-          <LoginForm onSuccess={(account) => {
-            localStorage.setItem("barber-one-role", account.role);
-            navigate(account.role === "kasir" ? "/kasir" : "/dashboard");
+          <LoginForm onSuccess={(user, rememberMe) => {
+            localStorage.removeItem("barber-one-role");
+            sessionStorage.removeItem("barber-one-role");
+            const storage = rememberMe ? localStorage : sessionStorage;
+            storage.setItem("barber-one-role", user.role);
+            navigate(user.role === "kasir" ? "/kasir" : "/dashboard");
           }} />
 
           <div className="card-footer-info">
             <p className="register-prompt">
               Belum memiliki akun reservasi?{" "}
-              <a href="#register" className="register-link">DAFTAR SEKARANG</a>
+              <Link to="/register" className="register-link">DAFTAR SEKARANG</Link>
             </p>
             <div className="location-schedule">
               <span>
