@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
-	"github.com/jackc/pgx/v5"
+	"barber-one/backend/config"
+
 	"github.com/joho/godotenv"
 )
 
@@ -17,32 +17,32 @@ func main() {
 		log.Println("File .env tidak ditemukan; menggunakan environment variables sistem")
 	}
 
-	databaseURL := os.Getenv("DATABASE_URL")
-	if databaseURL == "" {
-		log.Fatal("DATABASE_URL belum diatur")
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	db, err := pgx.Connect(ctx, databaseURL)
+	db, err := config.InitDBPool(ctx)
 	if err != nil {
 		log.Fatalf("Koneksi PostgreSQL gagal: %v", err)
 	}
-	defer db.Close(context.Background())
+	defer db.Close()
+	log.Println("Koneksi PostgreSQL berhasil")
 
-	var result int
-	if err := db.QueryRow(ctx, "SELECT 1").Scan(&result); err != nil {
-		log.Fatalf("Tes query database gagal: %v", err)
-	}
-	log.Printf("Koneksi PostgreSQL berhasil (SELECT %d)", result)
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello World!")
+	mux := http.NewServeMux()
+	sessions := newSessionStore()
+	mux.HandleFunc("/api/register", registerHandler(db))
+	mux.HandleFunc("/api/login", loginHandler(db, sessions))
+	mux.HandleFunc("/api/profile", profileHandler(db, sessions))
+	mux.HandleFunc("/api/logout", logoutHandler(sessions))
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]string{"message": "Barber One API aktif"})
 	})
 
-	fmt.Println("Backend berjalan di http:// localhost:3000")
-	if err := http.ListenAndServe(":3000", nil); err != nil {
+	fmt.Println("Backend berjalan di http://localhost:3000")
+	if err := http.ListenAndServe(":3000", corsMiddleware(mux)); err != nil {
 		fmt.Println("Server gagal:", err)
 	}
 }

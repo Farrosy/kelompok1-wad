@@ -7,10 +7,10 @@
 }
 
 .dashboard-content {
-  box-sizing: border-box;
+  /*box-sizing: border-box;
   margin: 0 auto;
   max-width: 1120px;
-  padding: 48px 24px;
+  padding: 48px 24px;*/
   flex: 1;
   width: 100%;
 }
@@ -79,9 +79,9 @@
 .cashier-status.is-confirmed { background: #edf5ef; color: #47724f; }
 
 @media (max-width: 640px) {
-  .dashboard-content {
+  /* .dashboard-content {
     padding: 32px 20px;
-  }
+  } */
 
   .account-page-sections {
     grid-template-columns: 1fr;

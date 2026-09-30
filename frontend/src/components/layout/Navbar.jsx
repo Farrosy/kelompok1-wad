@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../../config/api";
 import barberOneLogo from "../../assets/images/logo-barber-one.png";
 import "./Navigation.css";
 
@@ -14,6 +15,7 @@ export default function Navbar() {
   const isCashier = location.pathname.startsWith("/kasir");
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profile, setProfile] = useState(null);
   const profileMenuRef = useRef(null);
 
   // Tutup dropdown saat klik di luar area profil
@@ -27,10 +29,59 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  function handleLogout() {
+  useEffect(() => {
+    const token = localStorage.getItem("barber-one-token") || sessionStorage.getItem("barber-one-token");
+    if (!token) {
+      localStorage.removeItem("barber-one-role");
+      sessionStorage.removeItem("barber-one-role");
+      setProfile(null);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    fetch(`${API_BASE_URL}/api/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (response.status === 401) {
+          localStorage.removeItem("barber-one-role");
+          localStorage.removeItem("barber-one-token");
+          sessionStorage.removeItem("barber-one-role");
+          sessionStorage.removeItem("barber-one-token");
+          setProfile(null);
+          return null;
+        }
+        if (!response.ok) return null;
+        const data = await response.json();
+        return data.user;
+      })
+      .then((user) => {
+        if (user) setProfile(user);
+      })
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, [navigate]);
+
+  async function handleLogout() {
+    const token = localStorage.getItem("barber-one-token") || sessionStorage.getItem("barber-one-token");
+    if (token) {
+      try {
+        await fetch(`${API_BASE_URL}/api/logout`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch {
+        // Tetap bersihkan sesi lokal jika backend sedang tidak tersedia.
+      }
+    }
     localStorage.removeItem("barber-one-role");
+    localStorage.removeItem("barber-one-token");
+    sessionStorage.removeItem("barber-one-role");
+    sessionStorage.removeItem("barber-one-token");
     setIsProfileOpen(false);
-    navigate("/");
+    navigate("/login");
   }
 
   if (isCashier) {
@@ -84,7 +135,7 @@ export default function Navbar() {
           </button>
 
           {/* Profile Dropdown Container */}
-          <div className="cashier-profile-container" ref={profileMenuRef}>
+          {profile ? <div className="cashier-profile-container" ref={profileMenuRef}>
             <button
               type="button"
               className="cashier-profile-wrap"
@@ -93,8 +144,8 @@ export default function Navbar() {
               aria-haspopup="true"
             >
               <div className="profile-text">
-                <span className="profile-name">Arga Pratama</span>
-                <span className="profile-role">Kasir &amp; Barista</span>
+                <span className="profile-name">{profile.name}</span>
+                <span className="profile-role">{profile.role === "kasir" ? "Kasir" : "User"}</span>
               </div>
               <div className="profile-avatar">
                 <img
@@ -109,23 +160,10 @@ export default function Navbar() {
             {isProfileOpen && (
               <div className="profile-dropdown-menu" role="menu">
                 <div className="dropdown-user-header">
-                  <p className="dropdown-user-name">Arga Pratama</p>
-                  <p className="dropdown-user-role">ID: KASIR-01 · Senopati</p>
+                  <p className="dropdown-user-name">{profile.name}</p>
+                  <p className="dropdown-user-role">{profile.phone}</p>
                 </div>
                 <div className="dropdown-divider" />
-                <button
-                  type="button"
-                  className="dropdown-item-btn btn-login-switch"
-                  onClick={handleLogout}
-                  role="menuitem"
-                >
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                    <polyline points="10 17 15 12 10 7" />
-                    <line x1="15" y1="12" x2="3" y2="12" />
-                  </svg>
-                  <span>Ganti Akun / Login</span>
-                </button>
                 <button
                   type="button"
                   className="dropdown-item-btn btn-logout-action"
@@ -141,7 +179,7 @@ export default function Navbar() {
                 </button>
               </div>
             )}
-          </div>
+          </div> : <button className="dashboard-logout" type="button" onClick={() => navigate("/login")}>Login</button>}
         </div>
       </header>
     );
@@ -170,16 +208,33 @@ export default function Navbar() {
           </NavLink>
         ))}
       </nav>
-      <button
-        className="dashboard-logout"
-        type="button"
-        onClick={() => {
-          localStorage.removeItem("barber-one-role");
-          navigate("/");
-        }}
-      >
-        Logout
-      </button>
+      {profile ? (
+        <div className="cashier-profile-container" ref={profileMenuRef}>
+          <button
+            type="button"
+            className="cashier-profile-wrap"
+            onClick={() => setIsProfileOpen((previous) => !previous)}
+            aria-expanded={isProfileOpen}
+            aria-haspopup="true"
+          >
+            <span className="profile-name">{profile.name}</span>
+          </button>
+          {isProfileOpen && (
+            <div className="profile-dropdown-menu" role="menu">
+              <div className="dropdown-user-header">
+                <p className="dropdown-user-name">{profile.name}</p>
+                <p className="dropdown-user-role">{profile.phone}</p>
+              </div>
+              <div className="dropdown-divider" />
+              <button type="button" className="dropdown-item-btn btn-logout-action" onClick={handleLogout} role="menuitem">
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <button className="dashboard-logout" type="button" onClick={() => navigate("/login")}>Login</button>
+      )}
     </header>
   );
 }

@@ -1,11 +1,220 @@
+import { useState } from "react";
+import {
+  MapPin,
+  Clock,
+  Star,
+  CheckCircle,
+  ChevronDown,
+  Calendar,
+  User,
+  Wifi,
+  Wind,
+  Truck,
+  Zap,
+  Scissors,
+  CreditCard,
+} from "lucide-react";
+import barbershopHero from "../../assets/images/barbershop-hero.jpg";
+import "./HomeBookingPage.css";
+
+/* ── Static Data ── */
+const BARBERS = [
+  {
+    id: 1,
+    name: "Master Bayo",
+    rating: 4.9,
+    specialty: "Classic Taper, Fade, Traditional Shave",
+    available: true,
+    initials: "MB",
+    color: "#c8a86b",
+  },
+  {
+    id: 2,
+    name: "Ilham Arya",
+    rating: 4.8,
+    specialty: "Skin Fade, Free Hand, Gentleman",
+    available: true,
+    initials: "IA",
+    color: "#7b9e87",
+  },
+  {
+    id: 3,
+    name: "Dino Saleh",
+    rating: 4.7,
+    specialty: "Modern Cut, Skin Fade, Pompadour",
+    available: true,
+    initials: "DS",
+    color: "#8a7db5",
+  },
+  {
+    id: 5,
+    name: "Rafi Nugroho",
+    rating: 4.6,
+    specialty: "Textured Crop, Drop Fade, Curly Hair",
+    available: true,
+    initials: "RN",
+    color: "#c47a5a",
+  },
+  {
+    id: 6,
+    name: "Zaky Pratama",
+    rating: 4.8,
+    specialty: "Quiff, Undercut, Hair Color, Perm",
+    available: true,
+    initials: "ZP",
+    color: "#4e8fa0",
+  },
+  {
+    id: 4,
+    name: "Barber Tersedia Mana Saja",
+    rating: null,
+    specialty: "Sistem akan mencarikan barber terbaik",
+    available: true,
+    initials: "?",
+    color: "#b0a898",
+    isAny: true,
+  },
+];
+
+
+const SERVICES = [
+  {
+    id: "cut",
+    tag: "ID: CUT",
+    name: "Haircut & Wash",
+    price: "IDR 55.000",
+    rawPrice: 55000,
+    description:
+      "Layanan potong rambut lengkap dengan teknik precision cutting disesuaikan bentuk wajah dan preferensi gaya Anda.",
+    duration: "60 MENIT",
+  },
+  {
+    id: "shave",
+    tag: "ID: SHV",
+    name: "Shave & Trim",
+    price: "IDR 35.000",
+    rawPrice: 35000,
+    description:
+      "Cukuran rapi dan presisi, menggunakan alat terbaik dan teknik barbershop klasik untuk hasil yang sempurna.",
+    duration: "40 MENIT",
+  },
+  {
+    id: "darkening",
+    tag: "ID: DRK",
+    name: "Hair Darkening",
+    price: "IDR 250.000",
+    rawPrice: 250000,
+    description:
+      "Perawatan warna rambut yang mengembalikan pigmen alami rambut agar tampak lebih gelap, sehat, dan berkilau.",
+    duration: "60 MENIT",
+  },
+  {
+    id: "caviar",
+    tag: "ID: CAV",
+    name: "Hair Caviar",
+    price: "IDR 150.000",
+    rawPrice: 150000,
+    description:
+      "Perawatan intensif dengan formula eksklusif berbasis protein dan keratin untuk rambut yang lembut dan berkilau maksimal.",
+    duration: "60 MENIT",
+  },
+  {
+    id: "perm",
+    tag: "ID: PRM",
+    name: "Perm",
+    price: "IDR 445.000",
+    rawPrice: 445000,
+    description:
+      "Teknik pengeritingan permanen untuk menciptakan volume dan tekstur gelombang natural yang tahan lama.",
+    duration: "120 MENIT",
+  },
+  {
+    id: "downperm",
+    tag: "ID: DPM",
+    name: "Down Perm",
+    price: "IDR 225.000",
+    rawPrice: 225000,
+    description:
+      "Teknik pelurusan rambut semi-permanen yang melembutkan dan menekan keriting untuk hasil lebih rapi dan terkontrol.",
+    duration: "80 MENIT",
+  },
+];
+
+const TIME_SLOTS = [
+  "10:00", "10:30", "11:00", "11:30", "13:00",
+  "13:30", "14:00", "14:45", "15:30", "16:00",
+  "17:00", "17:30", "18:30", "19:00", "19:45"
+];
+
+const DAYS = [
+  { day: "SAB", date: 24, month: "Mei", label: "24" },
+  { day: "MIN", date: 25, month: "Mei", label: "25" },
+  { day: "SEN", date: 26, month: "Mei", label: "26" },
+  { day: "SEL", date: 27, month: "Mei", label: "27" },
+];
+
+const FACILITIES = [
+  {
+    icon: <Zap size={20} />,
+    title: "Hot Towel & Scalp Refresh",
+    desc: "Setiap layanan dilengkapi hot towel treatment dan scalp refresher.",
+  },
+  {
+    icon: <Wifi size={20} />,
+    title: "High Speed Wifi",
+    desc: "Nikmati koneksi internet stabil selama menunggu.",
+  },
+  {
+    icon: <Wind size={20} />,
+    title: "AC Cooling & Air Purifier",
+    desc: "Ruangan ber-AC dengan air purifier untuk kenyamanan optimal.",
+  },
+  {
+    icon: <Truck size={20} />,
+    title: "Dedicated Parking & Valet",
+    desc: "Parkir aman tersedia. Layanan valet tersedia saat peak hour.",
+  },
+];
+
+/* ── Helpers ── */
+function formatRupiah(num) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(num);
+}
+
+/* ── Component ── */
 export default function HomeBookingPage() {
+  const [selectedBarber, setSelectedBarber] = useState(null);
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerNotes, setCustomerNotes] = useState("");
+  const [selectedPayment, setSelectedPayment] = useState("Tunai");
+  const [bookingDone, setBookingDone] = useState(false);
+
+  const selectedServiceObjs = SERVICES.filter((s) => selectedServices.includes(s.id));
+  const total = selectedServiceObjs.reduce((sum, s) => sum + s.rawPrice, 0);
+  const barberObj = BARBERS.find((b) => b.id === selectedBarber);
+
+  function toggleService(id) {
+    setSelectedServices((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+  }
+
+  function handleBook(e) {
+    e.preventDefault();
+    if (!selectedBarber || selectedServices.length === 0 || !selectedDay || !selectedTime)
+      return;
+    setBookingDone(true);
+  }
+
   return (
-<<<<<<< Updated upstream
-    <section>
-      <h1 className="dashboard-page-heading">Beranda &amp; Booking</h1>
-      <p className="dashboard-page-copy">Halaman beranda dan booking akan ditampilkan di sini.</p>
-    </section>
-=======
     <div className="hb-page">
       {/* ── HERO ── */}
       <section className="hb-hero">
@@ -50,6 +259,9 @@ export default function HomeBookingPage() {
                 </div>
                 <div className="hb-slot-pill">
                   <Clock size={11} /> 09:00–21:00
+                </div>
+                <div className="hb-slot-pill">
+                  <Star size={11} fill="currentColor" /> 4.9 (1.200+ ulasan)
                 </div>
               </div>
             </div>
@@ -444,6 +656,5 @@ export default function HomeBookingPage() {
         </div>
       </section>
     </div>
->>>>>>> Stashed changes
   );
 }
