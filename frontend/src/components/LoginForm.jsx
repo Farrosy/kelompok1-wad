@@ -33,7 +33,7 @@ export default function LoginForm({ onSuccess }) {
       }
 
       showToast("success", `Login berhasil. Selamat datang, ${data.user.name}.`);
-      onSuccess(data.user, rememberMe);
+      onSuccess(data.user, rememberMe, data.access_token);
     } catch {
       showToast("error", "Tidak dapat terhubung ke server. Pastikan backend berjalan di port 3000.");
     } finally {

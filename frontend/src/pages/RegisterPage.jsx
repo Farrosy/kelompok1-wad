@@ -55,12 +55,12 @@ export default function RegisterPage() {
   return (
     <div className="barber-layout">
       <header className="barber-navbar">
-        <Link className="nav-brand" to="/" aria-label="Barber One, halaman masuk">
+        <Link className="nav-brand" to="/login" aria-label="Barber One, halaman masuk">
           <img src={barberOneLogo} alt="" className="nav-brand-logo" />
           <span className="brand-name">BARBER ONE</span>
         </Link>
         <nav className="nav-menu" aria-label="Navigasi utama">
-          <Link to="/" className="nav-link nav-link-button">Masuk</Link>
+          <Link to="/login" className="nav-link nav-link-button">Masuk</Link>
         </nav>
       </header>
 
@@ -87,7 +87,7 @@ export default function RegisterPage() {
           </p>
 
           {registered ? (
-            <Link to="/" className="btn-primary-dark register-submit-link">LANJUT KE HALAMAN MASUK <span className="btn-arrow">→</span></Link>
+            <Link to="/login" className="btn-primary-dark register-submit-link">LANJUT KE HALAMAN MASUK <span className="btn-arrow">→</span></Link>
           ) : (
             <form className="luxury-form register-form" onSubmit={handleSubmit} noValidate>
               <div className="form-group">
@@ -126,7 +126,7 @@ export default function RegisterPage() {
 
           <div className="card-footer-info">
             <p className="register-prompt">
-              Sudah memiliki akun? <Link to="/" className="register-link">MASUK</Link>
+              Sudah memiliki akun? <Link to="/login" className="register-link">MASUK</Link>
             </p>
             <div className="location-schedule">
               <span>Atelier Senopati &amp; SCBD</span><span className="dot-divider">•</span><span>Buka Setiap Hari 09.00 - 21.00</span>

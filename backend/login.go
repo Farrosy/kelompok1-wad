@@ -19,7 +19,7 @@ type loginRequest struct {
 	Password   string `json:"password"`
 }
 
-func loginHandler(db *pgxpool.Pool) http.HandlerFunc {
+func loginHandler(db *pgxpool.Pool, sessions *sessionStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			w.Header().Set("Allow", http.MethodPost)
@@ -66,10 +66,16 @@ func loginHandler(db *pgxpool.Pool) http.HandlerFunc {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Login gagal. Coba lagi beberapa saat."})
 			return
 		}
+		token, err := sessions.create(user.ID)
+		if err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal membuat sesi login."})
+			return
+		}
 
 		writeJSON(w, http.StatusOK, map[string]any{
-			"message": "Login berhasil.",
-			"user":    user,
+			"message":      "Login berhasil.",
+			"user":         user,
+			"access_token": token,
 		})
 	}
 }
