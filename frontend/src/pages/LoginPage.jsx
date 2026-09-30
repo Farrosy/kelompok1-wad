@@ -46,11 +46,14 @@ export default function LoginPage() {
             Kelola reservasi cukur dan pantau tiket antrean <b>BARBER ONE</b> secara langsung.
           </p>
 
-          <LoginForm onSuccess={(user, rememberMe) => {
+          <LoginForm onSuccess={(user, rememberMe, accessToken) => {
             localStorage.removeItem("barber-one-role");
+            localStorage.removeItem("barber-one-token");
             sessionStorage.removeItem("barber-one-role");
+            sessionStorage.removeItem("barber-one-token");
             const storage = rememberMe ? localStorage : sessionStorage;
             storage.setItem("barber-one-role", user.role);
+            storage.setItem("barber-one-token", accessToken);
             navigate(user.role === "kasir" ? "/kasir" : "/dashboard");
           }} />
 

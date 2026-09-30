@@ -28,8 +28,11 @@ func main() {
 	log.Println("Koneksi PostgreSQL berhasil")
 
 	mux := http.NewServeMux()
+	sessions := newSessionStore()
 	mux.HandleFunc("/api/register", registerHandler(db))
-	mux.HandleFunc("/api/login", loginHandler(db))
+	mux.HandleFunc("/api/login", loginHandler(db, sessions))
+	mux.HandleFunc("/api/profile", profileHandler(db, sessions))
+	mux.HandleFunc("/api/logout", logoutHandler(sessions))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)
