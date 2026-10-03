@@ -46,34 +46,6 @@ const BARBERS = [
     initials: "DS",
     color: "#8a7db5",
   },
-  {
-    id: 5,
-    name: "Rafi Nugroho",
-    rating: 4.6,
-    specialty: "Textured Crop, Drop Fade, Curly Hair",
-    available: true,
-    initials: "RN",
-    color: "#c47a5a",
-  },
-  {
-    id: 6,
-    name: "Zaky Pratama",
-    rating: 4.8,
-    specialty: "Quiff, Undercut, Hair Color, Perm",
-    available: true,
-    initials: "ZP",
-    color: "#4e8fa0",
-  },
-  {
-    id: 4,
-    name: "Barber Tersedia Mana Saja",
-    rating: null,
-    specialty: "Sistem akan mencarikan barber terbaik",
-    available: true,
-    initials: "?",
-    color: "#b0a898",
-    isAny: true,
-  },
 ];
 
 

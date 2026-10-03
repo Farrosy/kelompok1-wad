@@ -1,13 +1,81 @@
-const queue = [
-  { ticket: "BO-024", name: "Rizky Pratama", service: "Classic Cut", time: "10.30", status: "Menunggu" },
-  { ticket: "BO-025", name: "Andi Saputra", service: "Haircut + Wash", time: "10.45", status: "Menunggu" },
-  { ticket: "BO-026", name: "Dimas Putra", service: "Beard Trim", time: "11.00", status: "Dikonfirmasi" },
+import ChairRotation from "./components/ChairRotation";
+import MetricCards from "./components/MetricCards";
+import QueueTicketCard from "./components/QueueTicketCard";
+import WalkInForm from "./components/WalkInForm";
+
+const queueData = [
+  {
+    id: "#KB-104",
+    type: "ongoing",
+    ticket: "KURSI 01 • SEDANG BERJALAN",
+    timeLabel: "Mulai: 13:45 WIB",
+    timeEstimate: "(Sisa ~15 mnt)",
+    customer: "Hendra Wijaya",
+    service: "The Gentleman's Ritual",
+    serviceSub: "",
+    barberInitials: "MB",
+    barberName: "Master Bayu",
+    footerText: "Add-on: Matte Clay Pomade (Tersimpan di Tray)"
+  },
+  {
+    id: "#KB-105",
+    type: "ongoing",
+    ticket: "KURSI 02 • SEDANG BERJALAN",
+    timeLabel: "Mulai: 14:00 WIB",
+    timeEstimate: "(Sisa ~25 mnt)",
+    customer: "Rizky Pratama",
+    service: "Signature Haircut",
+    serviceSub: "",
+    barberInitials: "DA",
+    barberName: "Dimas Arya",
+    footerText: "Estimasi selesai pukul 14:45 WIB"
+  },
+  {
+    id: "#KB-106",
+    type: "waiting",
+    ticket: "MENUNGGU DI LOUNGE",
+    bookingType: "Booking Web",
+    timeLabel: "Jadwal Slot: 14:30 WIB",
+    customer: "Adrian Susanto",
+    service: "Beard Trim & Hot Oil",
+    serviceSub: "45 Menit Durasi",
+    barberInitials: "BS",
+    barberName: "Bima Sakti (Siap)",
+    footerText: "Menunggu kursi kosong berikutnya.",
+    actionButton: "Panggil Masuk Kursi 3"
+  },
+  {
+    id: "#KB-107",
+    type: "waiting",
+    ticket: "MENUNGGU",
+    bookingType: "Walk-In Langsung",
+    timeLabel: "Slot Antrean: 14:45 WIB",
+    customer: "Danu",
+    service: "Signature Haircut",
+    serviceSub: "Standard Cukur",
+    barberName: "Bebas / Barber Pertama Siap",
+    footerText: "Menunggu kursi kosong berikutnya.",
+    actionButton: "Panggil Masuk Kursi 4",
+    hasEditBtn: true
+  },
+  {
+    id: "#KB-103",
+    type: "done",
+    ticket: "SELESAI & LUNAS",
+    timeLabel: "Selesai: 13:50 WIB • Kasir 01",
+    customer: "Farhan K.",
+    service: "Beard Sculpt",
+    serviceSub: "Rp 120.000",
+    barberName: "QRIS Statis Bank Mandiri",
+    footerText: "Transaksi #TRX-9941 tersimpan di pembukuan kas.",
+    actionButton: "Cetak Ulang Struk",
+    btnStyle: "outline"
+  }
 ];
 
 export default function CashierDashboard() {
   return (
     <section className="cashier-dashboard-page">
-      {/* Top Action Bar */}
       <div className="cashier-subbar">
         <div className="subbar-left">
           <div className="active-station-badge">
@@ -36,143 +104,71 @@ export default function CashierDashboard() {
             </svg>
             Refresh
           </button>
-
           <button type="button" className="btn-subbar-add">
-            <span>+</span> + Tambah Walk-in
+            <span>+</span> Tambah Walk-in
           </button>
         </div>
       </div>
 
-      {/* 4 Metric Cards */}
-      <div className="cashier-metrics-grid">
-        {/* Card 1: Antrean Menunggu */}
-        <div className="metric-card">
-          <div className="metric-header">
-            <span className="metric-title">ANTREAN MENUNGGU</span>
-            <div className="metric-icon-box">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" />
+      <MetricCards />
+
+      <section className="dashboard-main-split">
+        <div className="dashboard-left-col">
+          <div className="queue-header-top">
+            <div className="queue-title-area">
+              <h2>Antrean & Status Kursi Barber</h2>
+              <p>Pusat alokasi rotasi kursi dan status transisi kasir.</p>
+            </div>
+            <div className="queue-search-container">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#6b7280" strokeWidth="2" className="search-icon">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
+              <input type="text" className="queue-search-input" placeholder="Cari nama atau no tiket..." />
             </div>
           </div>
-          <div className="metric-value-row">
-            <span className="metric-number">4</span>
-            <span className="metric-label">Pelanggan</span>
-          </div>
-          <div className="metric-footer-note">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-            <span>Estimasi tunggu ~20 mnt</span>
-          </div>
-        </div>
 
-        {/* Card 2: Kapasitas Kursi */}
-        <div className="metric-card">
-          <div className="metric-header">
-            <span className="metric-title">KAPASITAS KURSI</span>
-            <div className="metric-icon-box">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" />
-                <path d="M3 11v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z" />
-                <path d="M5 18v2M19 18v2" />
-              </svg>
+          <div className="queue-filters">
+            <div className="filter-tabs">
+              <button className="filter-tab active">Semua (5)</button>
+              <button className="filter-tab">Sedang Berjalan (2)</button>
+              <button className="filter-tab">Menunggu (2)</button>
+              <button className="filter-tab">Selesai (1)</button>
+            </div>
+            <div className="live-queue-indicator">
+              <span className="live-dot"></span> Live Queue
             </div>
           </div>
-          <div className="metric-value-row">
-            <span className="metric-number">3</span>
-            <span className="metric-slash">/ 4</span>
-            <span className="metric-label">Kursi Terisi</span>
-          </div>
-          <div className="chair-indicator-row">
-            <span className="chair-dot filled" />
-            <span className="chair-dot filled" />
-            <span className="chair-dot empty" />
-            <span className="chair-dot filled" />
-            <span className="chair-note">Kursi 3 Tersedia</span>
-          </div>
-        </div>
 
-        {/* Card 3: Selesai Hari Ini */}
-        <div className="metric-card">
-          <div className="metric-header">
-            <span className="metric-title">SELESAI HARI INI</span>
-            <div className="metric-icon-box">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          <div className="queue-list">
+            {queueData.map((item) => (
+              <QueueTicketCard key={item.id} item={item} />
+            ))}
+          </div>
+
+          <div className="queue-pagination">
+            <div className="pagination-info">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="3" y1="9" x2="21" y2="9" />
+                <line x1="9" y1="21" x2="9" y2="9" />
               </svg>
+              <span>Menampilkan <strong>1 - 5</strong> dari <strong>14</strong> antrean hari ini</span>
+            </div>
+            <div className="pagination-controls">
+              <button className="page-btn disabled" disabled>‹ Sebelumnya</button>
+              <button className="page-btn active">1</button>
+              <button className="page-btn">2</button>
+              <button className="page-btn">3</button>
+              <button className="page-btn">Berikutnya ›</button>
             </div>
           </div>
-          <div className="metric-value-row">
-            <span className="metric-number">18</span>
-            <span className="metric-label">Sesi Selesai</span>
-          </div>
-          <div className="metric-trend-row">
-            <span className="trend-arrow">↑</span>
-            <strong>+12%</strong>
-            <span>vs hari kemarin</span>
-          </div>
+
+          <ChairRotation />
         </div>
 
-        {/* Card 4: Omzet Sementara */}
-        <div className="metric-card">
-          <div className="metric-header">
-            <span className="metric-title">OMZET SEMENTARA</span>
-            <div className="metric-icon-box">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="2" y="6" width="20" height="12" rx="2" />
-                <circle cx="12" cy="12" r="2" />
-                <path d="M6 12h.01M18 12h.01" />
-              </svg>
-            </div>
-          </div>
-          <div className="metric-value-row">
-            <span className="metric-currency-text">Rp 2.450.000</span>
-          </div>
-          <div className="metric-omzet-footer">
-            <span>14 Tunai • 4 QRIS/Debit</span>
-            <a href="#kas" className="open-cash-link">Buka Kas →</a>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabel Antrean */}
-      <section className="cashier-queue-card" aria-labelledby="queue-title">
-        <div className="cashier-queue-heading">
-          <div>
-            <h2 id="queue-title">Antrean Booking</h2>
-            <p>Daftar pelanggan dan jadwal layanan terdekat.</p>
-          </div>
-          <button type="button" className="cashier-refresh" onClick={() => window.location.reload()}>Muat ulang</button>
-        </div>
-        <div className="cashier-table-wrap">
-          <table className="cashier-table">
-            <thead>
-              <tr>
-                <th>No. Tiket</th>
-                <th>Pelanggan</th>
-                <th>Layanan</th>
-                <th>Jadwal</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {queue.map((item) => (
-                <tr key={item.ticket}>
-                  <td className="cashier-ticket">{item.ticket}</td>
-                  <td>{item.name}</td>
-                  <td>{item.service}</td>
-                  <td>{item.time}</td>
-                  <td>
-                    <span className={`cashier-status ${item.status === "Menunggu" ? "is-waiting" : "is-confirmed"}`}>
-                      {item.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="dashboard-right-col">
+          <WalkInForm />
         </div>
       </section>
     </section>
