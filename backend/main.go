@@ -7,11 +7,23 @@ import (
 	"net/http"
 	"time"
 
+	httpSwagger "github.com/swaggo/http-swagger/v2"
+
 	"barber-one/backend/config"
+	_ "barber-one/backend/docs"
 
 	"github.com/joho/godotenv"
 )
 
+// @title           			Barber One API
+// @version         			1.0
+// @description     			API untuk aplikasi Barber One
+// @host            			localhost:8080
+// @BasePath  					/api
+// @securityDefinitions.apikey  BearerAuth
+// @in                          header
+// @name                        Authorization
+// @description                 Isi dengan: Bearer <token>
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("File .env tidak ditemukan; menggunakan environment variables sistem")
@@ -29,6 +41,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	sessions := newSessionStore()
+	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 	mux.HandleFunc("/api/register", registerHandler(db))
 	mux.HandleFunc("/api/login", loginHandler(db, sessions))
 	mux.HandleFunc("/api/profile", profileHandler(db, sessions))

@@ -10,6 +10,14 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// profileHandler godoc
+// @Summary      Ambil profil user yang sedang login
+// @Tags         user
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  map[string]string
+// @Router       /profile [get]
 func profileHandler(db *pgxpool.Pool, sessions *sessionStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
@@ -44,6 +52,13 @@ func profileHandler(db *pgxpool.Pool, sessions *sessionStore) http.HandlerFunc {
 	}
 }
 
+// logoutHandler godoc
+// @Summary      Logout dan hapus sesi
+// @Tags         auth
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]string
+// @Router       /logout [post]
 func logoutHandler(sessions *sessionStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
