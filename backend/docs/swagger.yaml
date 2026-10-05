@@ -1,0 +1,9 @@
+basePath: /
+host: localhost:8080
+info:
+  contact: {}
+  description: API untuk aplikasi Barber One
+  title: Barber One API
+  version: "1.0"
+paths: {}
+swagger: "2.0"

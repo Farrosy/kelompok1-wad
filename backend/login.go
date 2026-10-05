@@ -20,6 +20,15 @@ type loginRequest struct {
 }
 
 func loginHandler(db *pgxpool.Pool, sessions *sessionStore) http.HandlerFunc {
+	// Login godoc
+	// @Summary      Login user
+	// @Tags         auth
+	// @Accept       json
+	// @Produce      json
+	// @Param        body  body      LoginRequest  true  "Kredensial"
+	// @Success      200   {object}  map[string]string
+	// @Failure      401   {object}  map[string]string
+	// @Router       /login [post]
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			w.Header().Set("Allow", http.MethodPost)
