@@ -32,6 +32,16 @@ type registeredUser struct {
 	Role  string  `json:"role"`
 }
 
+// registerHandler godoc
+// @Summary      Registrasi user baru
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      registerRequest  true  "Data registrasi"
+// @Success      201   {object}  registeredUser
+// @Failure      400   {object}  map[string]string
+// @Failure      409   {object}  map[string]string
+// @Router       /register [post]
 func registerHandler(db *pgxpool.Pool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {

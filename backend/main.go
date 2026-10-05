@@ -15,11 +15,15 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// @title           Barber One API
-// @version         1.0
-// @description     API untuk aplikasi Barber One
-// @host            localhost:8080
-// @BasePath        /
+// @title           			Barber One API
+// @version         			1.0
+// @description     			API untuk aplikasi Barber One
+// @host            			localhost:8080
+// @BasePath  					/api
+// @securityDefinitions.apikey  BearerAuth
+// @in                          header
+// @name                        Authorization
+// @description                 Isi dengan: Bearer <token>
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("File .env tidak ditemukan; menggunakan environment variables sistem")
