@@ -90,12 +90,8 @@ func createBookingHandler(db *pgxpool.Pool, sessions *sessionStore) http.Handler
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Format jam harus HH:MM."})
 			return
 		}
-		allowedTimes := []string{
-			"10:00", "10:45", "11:30", "12:15", "13:00", "13:45", "14:30",
-			"15:15", "16:00", "16:45", "17:30", "18:15", "19:00", "19:45",
-		}
 		timeIsAvailable := false
-		for _, availableTime := range allowedTimes {
+		for _, availableTime := range bookingStartTimes {
 			if input.BookingTime == availableTime {
 				timeIsAvailable = true
 				break
@@ -120,10 +116,53 @@ func createBookingHandler(db *pgxpool.Pool, sessions *sessionStore) http.Handler
 			writeJSON(w, http.StatusConflict, map[string]string{"error": "Barber sedang tidak tersedia."})
 			return
 		}
+		var serviceDuration int
+		err = db.QueryRow(r.Context(), `SELECT duration_minutes FROM services WHERE id = $1`, input.ServiceID).Scan(&serviceDuration)
+		if errors.Is(err, pgx.ErrNoRows) {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Layanan tidak ditemukan."})
+			return
+		}
+		if err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal memeriksa layanan."})
+			return
+		}
+		bookingStart, _ := time.Parse("15:04", input.BookingTime)
+		bookingEnd := bookingStart.Add(time.Duration(serviceDuration) * time.Minute)
+		if bookingEnd.After(time.Date(bookingStart.Year(), bookingStart.Month(), bookingStart.Day(), 21, 0, 0, 0, bookingStart.Location())) {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Durasi layanan melewati jam operasional."})
+			return
+		}
 
 		ticketCode := "BK-" + strconv.FormatInt(time.Now().UnixNano(), 36)
 		var booking createdBooking
-		err = db.QueryRow(r.Context(),
+		tx, err := db.Begin(r.Context())
+		if err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Booking gagal disimpan."})
+			return
+		}
+		defer tx.Rollback(r.Context())
+		if _, err = tx.Exec(r.Context(), `SELECT pg_advisory_xact_lock($1, hashtext($2))`, int32(input.BarberID), input.BookingDate); err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal mengunci slot booking."})
+			return
+		}
+		var hasConflict bool
+		err = tx.QueryRow(r.Context(),
+			`SELECT EXISTS (
+				SELECT 1 FROM bookings b JOIN services s ON s.id = b.service_id
+				WHERE b.barber_id = $1 AND b.booking_date = $2 AND b.status <> 'Batal'
+				AND ($3::time < b.booking_time::time + s.duration_minutes * interval '1 minute'
+				 AND b.booking_time::time < $3::time + $4 * interval '1 minute')
+			)`, input.BarberID, bookingDate, input.BookingTime, serviceDuration,
+		).Scan(&hasConflict)
+		if err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal memeriksa slot booking."})
+			return
+		}
+		if hasConflict {
+			writeJSON(w, http.StatusConflict, map[string]string{"error": "Slot ini sudah dipesan. Silakan pilih jam lain."})
+			return
+		}
+		err = tx.QueryRow(r.Context(),
 			`INSERT INTO bookings
 			 (ticket_code, user_id, customer_name, customer_phone, service_id, barber_id, booking_date, booking_time, notes)
 			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -141,6 +180,10 @@ func createBookingHandler(db *pgxpool.Pool, sessions *sessionStore) http.Handler
 				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Layanan atau barber tidak ditemukan."})
 				return
 			}
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Booking gagal disimpan."})
+			return
+		}
+		if err := tx.Commit(r.Context()); err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Booking gagal disimpan."})
 			return
 		}

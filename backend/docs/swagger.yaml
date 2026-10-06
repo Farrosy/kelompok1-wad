@@ -1,5 +1,18 @@
 basePath: /api
 definitions:
+  main.availabilityResponse:
+    properties:
+      available_slots:
+        items:
+          type: string
+        type: array
+      barber_id:
+        type: integer
+      date:
+        type: string
+      service_id:
+        type: integer
+    type: object
   main.barber:
     properties:
       available:
@@ -95,6 +108,46 @@ info:
   title: Barber One API
   version: "1.0"
 paths:
+  /availability:
+    get:
+      parameters:
+      - description: ID barber
+        in: query
+        name: barber_id
+        required: true
+        type: integer
+      - description: Tanggal booking (YYYY-MM-DD)
+        in: query
+        name: date
+        required: true
+        type: string
+      - description: ID layanan
+        in: query
+        name: service_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.availabilityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cek slot booking yang tersedia
+      tags:
+      - bookings
   /barbers:
     get:
       produces:
