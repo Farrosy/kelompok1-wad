@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   MapPin,
   Clock,
@@ -15,115 +15,27 @@ import {
   CreditCard,
 } from "lucide-react";
 import barbershopHero from "../../assets/images/barbershop-hero.jpg";
+import { API_BASE_URL } from "../../config/api";
 import "./HomeBookingPage.css";
 
-/* ── Static Data ── */
-const BARBERS = [
-  {
-    id: 1,
-    name: "Master Bayo",
-    rating: 4.9,
-    specialty: "Classic Taper, Fade, Traditional Shave",
-    available: true,
-    initials: "MB",
-    color: "#c8a86b",
-  },
-  {
-    id: 2,
-    name: "Ilham Arya",
-    rating: 4.8,
-    specialty: "Skin Fade, Free Hand, Gentleman",
-    available: true,
-    initials: "IA",
-    color: "#7b9e87",
-  },
-  {
-    id: 3,
-    name: "Dino Saleh",
-    rating: 4.7,
-    specialty: "Modern Cut, Skin Fade, Pompadour",
-    available: true,
-    initials: "DS",
-    color: "#8a7db5",
-  },
-];
-
-
-const SERVICES = [
-  {
-    id: "cut",
-    tag: "ID: CUT",
-    name: "Haircut & Wash",
-    price: "IDR 55.000",
-    rawPrice: 55000,
-    description:
-      "Layanan potong rambut lengkap dengan teknik precision cutting disesuaikan bentuk wajah dan preferensi gaya Anda.",
-    duration: "60 MENIT",
-  },
-  {
-    id: "shave",
-    tag: "ID: SHV",
-    name: "Shave & Trim",
-    price: "IDR 35.000",
-    rawPrice: 35000,
-    description:
-      "Cukuran rapi dan presisi, menggunakan alat terbaik dan teknik barbershop klasik untuk hasil yang sempurna.",
-    duration: "40 MENIT",
-  },
-  {
-    id: "darkening",
-    tag: "ID: DRK",
-    name: "Hair Darkening",
-    price: "IDR 250.000",
-    rawPrice: 250000,
-    description:
-      "Perawatan warna rambut yang mengembalikan pigmen alami rambut agar tampak lebih gelap, sehat, dan berkilau.",
-    duration: "60 MENIT",
-  },
-  {
-    id: "caviar",
-    tag: "ID: CAV",
-    name: "Hair Caviar",
-    price: "IDR 150.000",
-    rawPrice: 150000,
-    description:
-      "Perawatan intensif dengan formula eksklusif berbasis protein dan keratin untuk rambut yang lembut dan berkilau maksimal.",
-    duration: "60 MENIT",
-  },
-  {
-    id: "perm",
-    tag: "ID: PRM",
-    name: "Perm",
-    price: "IDR 445.000",
-    rawPrice: 445000,
-    description:
-      "Teknik pengeritingan permanen untuk menciptakan volume dan tekstur gelombang natural yang tahan lama.",
-    duration: "120 MENIT",
-  },
-  {
-    id: "downperm",
-    tag: "ID: DPM",
-    name: "Down Perm",
-    price: "IDR 225.000",
-    rawPrice: 225000,
-    description:
-      "Teknik pelurusan rambut semi-permanen yang melembutkan dan menekan keriting untuk hasil lebih rapi dan terkontrol.",
-    duration: "80 MENIT",
-  },
-];
-
 const TIME_SLOTS = [
-  "10:00", "10:30", "11:00", "11:30", "13:00",
-  "13:30", "14:00", "14:45", "15:30", "16:00",
-  "17:00", "17:30", "18:30", "19:00", "19:45"
+  "10:00", "10:45", "11:30", "12:15", "13:00", "13:45", "14:30",
+  "15:15", "16:00", "16:45", "17:30", "18:15", "19:00", "19:45",
 ];
 
-const DAYS = [
-  { day: "SAB", date: 24, month: "Mei", label: "24" },
-  { day: "MIN", date: 25, month: "Mei", label: "25" },
-  { day: "SEN", date: 26, month: "Mei", label: "26" },
-  { day: "SEL", date: 27, month: "Mei", label: "27" },
-];
+const DAYS = Array.from({ length: 4 }, (_, index) => {
+  const date = new Date();
+  date.setDate(date.getDate() + index + 1);
+  const monthNumber = String(date.getMonth() + 1).padStart(2, "0");
+  const dayNumber = String(date.getDate()).padStart(2, "0");
+
+  return {
+    value: `${date.getFullYear()}-${monthNumber}-${dayNumber}`,
+    day: date.toLocaleDateString("id-ID", { weekday: "short" }).toUpperCase(),
+    date: date.getDate(),
+    month: date.toLocaleDateString("id-ID", { month: "short" }),
+  };
+});
 
 const FACILITIES = [
   {
@@ -159,6 +71,12 @@ function formatRupiah(num) {
 
 /* ── Component ── */
 export default function HomeBookingPage() {
+  const [barbers, setBarbers] = useState([]);
+  const [barbersLoading, setBarbersLoading] = useState(true);
+  const [barbersError, setBarbersError] = useState("");
+  const [services, setServices] = useState([]);
+  const [servicesLoading, setServicesLoading] = useState(true);
+  const [servicesError, setServicesError] = useState("");
   const [selectedBarber, setSelectedBarber] = useState(null);
   const [selectedServices, setSelectedServices] = useState([]);
   const [selectedDay, setSelectedDay] = useState(null);
@@ -168,22 +86,101 @@ export default function HomeBookingPage() {
   const [customerNotes, setCustomerNotes] = useState("");
   const [selectedPayment, setSelectedPayment] = useState("Tunai");
   const [bookingDone, setBookingDone] = useState(false);
+  const [bookingSubmitting, setBookingSubmitting] = useState(false);
+  const [bookingError, setBookingError] = useState("");
+  const [bookingTicket, setBookingTicket] = useState("");
 
-  const selectedServiceObjs = SERVICES.filter((s) => selectedServices.includes(s.id));
-  const total = selectedServiceObjs.reduce((sum, s) => sum + s.rawPrice, 0);
-  const barberObj = BARBERS.find((b) => b.id === selectedBarber);
+  useEffect(() => {
+    async function getServices() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/services`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          setServicesError(data.error || "Gagal memuat layanan.");
+          return;
+        }
+
+        setServices(data.services);
+      } catch {
+        setServicesError("Tidak dapat terhubung ke server.");
+      } finally {
+        setServicesLoading(false);
+      }
+    }
+
+    getServices();
+  }, []);
+
+  useEffect(() => {
+    async function getBarbers() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/barbers`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          setBarbersError(data.error || "Gagal memuat daftar barber.");
+          return;
+        }
+
+        setBarbers(data.barbers);
+      } catch {
+        setBarbersError("Tidak dapat terhubung ke server.");
+      } finally {
+        setBarbersLoading(false);
+      }
+    }
+
+    getBarbers();
+  }, []);
+
+  const selectedServiceObjs = services.filter((s) => selectedServices.includes(s.id));
+  const total = selectedServiceObjs.reduce((sum, s) => sum + Number(s.price), 0);
+  const barberObj = barbers.find((b) => b.id === selectedBarber);
 
   function toggleService(id) {
-    setSelectedServices((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-    );
+    setSelectedServices((previous) => (previous[0] === id ? [] : [id]));
   }
 
-  function handleBook(e) {
+  async function handleBook(e) {
     e.preventDefault();
-    if (!selectedBarber || selectedServices.length === 0 || !selectedDay || !selectedTime)
-      return;
-    setBookingDone(true);
+    if (!selectedBarber || selectedServices.length === 0 || !selectedDay || !selectedTime) return;
+
+    setBookingSubmitting(true);
+    setBookingError("");
+
+    try {
+      const token = localStorage.getItem("barber-one-token") || sessionStorage.getItem("barber-one-token");
+      const response = await fetch(`${API_BASE_URL}/api/bookings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token || ""}`,
+        },
+        body: JSON.stringify({
+          service_id: selectedServices[0],
+          barber_id: selectedBarber,
+          customer_name: customerName,
+          customer_phone: customerPhone,
+          booking_date: selectedDay,
+          booking_time: selectedTime,
+          notes: customerNotes,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setBookingError(data.error || "Booking gagal dibuat.");
+        return;
+      }
+
+      setBookingTicket(data.booking.ticket_code);
+      setBookingDone(true);
+    } catch {
+      setBookingError("Tidak dapat terhubung ke server.");
+    } finally {
+      setBookingSubmitting(false);
+    }
   }
 
   return (
@@ -246,8 +243,14 @@ export default function HomeBookingPage() {
         <div className="hb-section-inner">
           <p className="hb-services-eyebrow">PILIHAN GROOMING</p>
           <h2 className="hb-services-title">Layanan Barber One Atelier</h2>
+          <p>Pilih satu layanan untuk setiap booking.</p>
+          {servicesLoading && <p role="status">Memuat layanan...</p>}
+          {servicesError && <p role="alert">{servicesError}</p>}
+          {!servicesLoading && !servicesError && services.length === 0 && (
+            <p>Belum ada layanan yang tersedia.</p>
+          )}
           <div className="hb-services-grid">
-            {SERVICES.map((svc) => {
+            {services.map((svc) => {
               const isChosen = selectedServices.includes(svc.id);
               return (
                 <div
@@ -256,12 +259,12 @@ export default function HomeBookingPage() {
                   onClick={() => toggleService(svc.id)}
                 >
                   <div className="hb-service-top">
-                    <span className="hb-service-tag">{svc.tag}</span>
-                    <span className="hb-service-duration">{svc.duration}</span>
+                  <span className="hb-service-tag">ID: {String(svc.id).padStart(3, "0")}</span>
+                  <span className="hb-service-duration">{svc.duration_minutes} MENIT</span>
                   </div>
                   <h3 className="hb-service-name">{svc.name}</h3>
-                  <p className="hb-service-price">{svc.price}</p>
-                  <p className="hb-service-desc">{svc.description}</p>
+                  <p className="hb-service-price">{formatRupiah(Number(svc.price))}</p>
+                  <p className="hb-service-desc">{svc.description || ""}</p>
                   <button
                     className={`hb-service-btn${isChosen ? " is-chosen" : ""}`}
                     onClick={(e) => {
@@ -299,15 +302,17 @@ export default function HomeBookingPage() {
           {bookingDone ? (
             <div className="hb-booking-success">
               <CheckCircle size={52} className="hb-success-icon" />
-              <h3>Reservasi Berhasil!</h3>
+              <h3>Booking berhasil dibuat!</h3>
               <p>
                 Terima kasih <strong>{customerName}</strong>. Booking Anda
                 untuk layanan <strong>{selectedServiceObjs.map((s) => s.name).join(", ")}</strong> pada{" "}
                 <strong>
-                  {DAYS.find((d) => d.label === selectedDay)?.day}{" "}
-                  {selectedDay} Mei
+                  {DAYS.find((d) => d.value === selectedDay)?.day}{" "}
+                  {DAYS.find((d) => d.value === selectedDay)?.date}{" "}
+                  {DAYS.find((d) => d.value === selectedDay)?.month}
                 </strong>{" "}
-                pukul <strong>{selectedTime}</strong> telah terkonfirmasi.
+                pukul <strong>{selectedTime}</strong> telah dicatat.
+                <br />Kode tiket: <strong>{bookingTicket}</strong>
               </p>
               <button
                 className="hb-book-again-btn"
@@ -336,11 +341,16 @@ export default function HomeBookingPage() {
                     <span className="hb-step-num">1</span>
                     <h3 className="hb-step-title">Pilih Barber / Kapster</h3>
                     <span className="hb-step-avail">
-                      {BARBERS.filter((b) => b.available).length} tersedia hari ini
+                      {barbers.filter((b) => b.available).length} tersedia hari ini
                     </span>
                   </div>
+                  {barbersLoading && <p role="status">Memuat daftar barber...</p>}
+                  {barbersError && <p role="alert">{barbersError}</p>}
+                  {!barbersLoading && !barbersError && barbers.length === 0 && (
+                    <p>Belum ada barber yang tersedia.</p>
+                  )}
                   <div className="hb-barber-grid">
-                    {BARBERS.map((b) => (
+                    {barbers.map((b) => (
                       <label
                         key={b.id}
                         className={`hb-barber-card${selectedBarber === b.id ? " is-active" : ""}${!b.available ? " is-unavail" : ""}`}
@@ -354,11 +364,8 @@ export default function HomeBookingPage() {
                           onChange={() => setSelectedBarber(b.id)}
                           className="hb-sr-only"
                         />
-                        <div
-                          className="hb-barber-avatar"
-                          style={{ background: b.color }}
-                        >
-                          {b.initials}
+                        <div className="hb-barber-avatar" style={{ background: "#c8a86b" }}>
+                          {b.name.slice(0, 2).toUpperCase()}
                         </div>
                         <div className="hb-barber-info">
                           <p className="hb-barber-name">
@@ -370,7 +377,9 @@ export default function HomeBookingPage() {
                               </span>
                             )}
                           </p>
-                          <p className="hb-barber-spec">{b.specialty}</p>
+                          <p className="hb-barber-spec">
+                            {b.available ? "Tersedia untuk booking" : "Sedang tidak tersedia"}
+                          </p>
                           {!b.available && (
                             <span className="hb-barber-unavail-tag">
                               Tidak tersedia
@@ -393,16 +402,16 @@ export default function HomeBookingPage() {
                   <div className="hb-step-header">
                     <span className="hb-step-num">2</span>
                     <h3 className="hb-step-title">Pilih Tanggal &amp; Jam</h3>
-                    <span className="hb-step-avail">Batas 31 Mei 2025</span>
+                    <span className="hb-step-avail">Jadwal 4 hari ke depan</span>
                   </div>
 
                   <div className="hb-day-row">
                     {DAYS.map((d) => (
                       <button
-                        key={d.label}
+                        key={d.value}
                         type="button"
-                        className={`hb-day-btn${selectedDay === d.label ? " is-active" : ""}`}
-                        onClick={() => setSelectedDay(d.label)}
+                        className={`hb-day-btn${selectedDay === d.value ? " is-active" : ""}`}
+                        onClick={() => setSelectedDay(d.value)}
                       >
                         <span className="hb-day-name">{d.day}</span>
                         <span className="hb-day-date">{d.date}</span>
@@ -493,13 +502,15 @@ export default function HomeBookingPage() {
                     !selectedDay ||
                     !selectedTime ||
                     !customerName ||
-                    !customerPhone
+                    !customerPhone ||
+                    bookingSubmitting
                   }
                 >
                   <Calendar size={16} />
-                  DAFTAR BOOKING &amp; KONFIRMASI SLOT
+                  {bookingSubmitting ? "MENYIMPAN BOOKING..." : "DAFTAR BOOKING & KONFIRMASI SLOT"}
                   <ChevronDown size={16} />
                 </button>
+                {bookingError && <p role="alert">{bookingError}</p>}
               </form>
 
               {/* Right – Summary */}
@@ -518,7 +529,7 @@ export default function HomeBookingPage() {
                     <span>Waktu</span>
                     <span>
                       {selectedDay && selectedTime
-                        ? `${DAYS.find((d) => d.label === selectedDay)?.day ?? ""} ${selectedDay} Mei · ${selectedTime}`
+                        ? `${DAYS.find((d) => d.value === selectedDay)?.day ?? ""} ${DAYS.find((d) => d.value === selectedDay)?.date} ${DAYS.find((d) => d.value === selectedDay)?.month} · ${selectedTime}`
                         : "–"}
                     </span>
                   </div>
@@ -535,7 +546,7 @@ export default function HomeBookingPage() {
                       {selectedServiceObjs.map((s) => (
                         <li key={s.id} className="hb-summary-svc-item">
                           <span>{s.name}</span>
-                          <span className="hb-summary-svc-price">{s.price}</span>
+                          <span className="hb-summary-svc-price">{formatRupiah(Number(s.price))}</span>
                         </li>
                       ))}
                     </ul>
