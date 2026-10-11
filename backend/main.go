@@ -46,6 +46,10 @@ func main() {
 	mux.HandleFunc("/api/login", loginHandler(db, sessions))
 	mux.HandleFunc("/api/profile", profileHandler(db, sessions))
 	mux.HandleFunc("/api/logout", logoutHandler(sessions))
+	mux.HandleFunc("/api/services", listServicesHandler(db))
+	mux.HandleFunc("/api/barbers", listBarbersHandler(db))
+	mux.HandleFunc("/api/bookings", createBookingHandler(db, sessions))
+	mux.HandleFunc("/api/availability", getAvailabilityHandler(db))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)

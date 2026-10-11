@@ -1,5 +1,62 @@
 basePath: /api
 definitions:
+  main.availabilityResponse:
+    properties:
+      available_slots:
+        items:
+          type: string
+        type: array
+      barber_id:
+        type: integer
+      date:
+        type: string
+      service_id:
+        type: integer
+    type: object
+  main.barber:
+    properties:
+      available:
+        type: boolean
+      id:
+        type: integer
+      name:
+        type: string
+      rating:
+        type: number
+    type: object
+  main.createBookingRequest:
+    properties:
+      barber_id:
+        type: integer
+      booking_date:
+        type: string
+      booking_time:
+        type: string
+      customer_name:
+        type: string
+      customer_phone:
+        type: string
+      notes:
+        type: string
+      service_id:
+        type: integer
+    type: object
+  main.createBookingResponse:
+    properties:
+      booking:
+        $ref: '#/definitions/main.createdBooking'
+      message:
+        type: string
+    type: object
+  main.createdBooking:
+    properties:
+      id:
+        type: integer
+      status:
+        type: string
+      ticket_code:
+        type: string
+    type: object
   main.loginRequest:
     properties:
       identifier:
@@ -31,6 +88,19 @@ definitions:
       role:
         type: string
     type: object
+  main.service:
+    properties:
+      description:
+        type: string
+      duration_minutes:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -38,6 +108,109 @@ info:
   title: Barber One API
   version: "1.0"
 paths:
+  /availability:
+    get:
+      parameters:
+      - description: ID barber
+        in: query
+        name: barber_id
+        required: true
+        type: integer
+      - description: Tanggal booking (YYYY-MM-DD)
+        in: query
+        name: date
+        required: true
+        type: string
+      - description: ID layanan
+        in: query
+        name: service_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.availabilityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cek slot booking yang tersedia
+      tags:
+      - bookings
+  /barbers:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/main.barber'
+              type: array
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Daftar barber
+      tags:
+      - barbers
+  /bookings:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Data booking
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/main.createBookingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.createBookingResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Membuat booking
+      tags:
+      - bookings
   /login:
     post:
       consumes:
@@ -137,6 +310,28 @@ paths:
       summary: Registrasi user baru
       tags:
       - auth
+  /services:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/main.service'
+              type: array
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Daftar layanan aktif
+      tags:
+      - services
 securityDefinitions:
   BearerAuth:
     description: 'Isi dengan: Bearer <token>'
