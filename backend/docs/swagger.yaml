@@ -88,6 +88,13 @@ definitions:
       role:
         type: string
     type: object
+  main.rescheduleBookingRequest:
+    properties:
+      booking_date:
+        type: string
+      booking_time:
+        type: string
+    type: object
   main.service:
     properties:
       description:
@@ -100,6 +107,37 @@ definitions:
         type: string
       price:
         type: number
+    type: object
+  main.userBooking:
+    properties:
+      barber_id:
+        type: integer
+      barber_name:
+        type: string
+      booking_date:
+        type: string
+      booking_time:
+        type: string
+      customer_name:
+        type: string
+      customer_phone:
+        type: string
+      duration_minutes:
+        type: integer
+      id:
+        type: integer
+      notes:
+        type: string
+      price:
+        type: number
+      service_id:
+        type: integer
+      service_name:
+        type: string
+      status:
+        type: string
+      ticket_code:
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -171,6 +209,35 @@ paths:
       tags:
       - barbers
   /bookings:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/main.userBooking'
+              type: array
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Daftar booking user yang sedang login
+      tags:
+      - bookings
     post:
       consumes:
       - application/json
@@ -209,6 +276,122 @@ paths:
       security:
       - BearerAuth: []
       summary: Membuat booking
+      tags:
+      - bookings
+  /bookings/{id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID booking
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Jadwal baru (untuk reschedule)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/main.rescheduleBookingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Membatalkan atau mengubah jadwal booking milik user
+      tags:
+      - bookings
+  /bookings/{id}/reschedule:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID booking
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Jadwal baru (untuk reschedule)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/main.rescheduleBookingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Membatalkan atau mengubah jadwal booking milik user
       tags:
       - bookings
   /login:
