@@ -2,10 +2,9 @@ package main
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"sort"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -13,22 +12,22 @@ import (
 )
 
 type ticketBooking struct {
-	ID              int64    `json:"id"`
-	TicketCode      string   `json:"ticket_code"`
-	Status          string   `json:"status"`
-	BookingDate     string   `json:"booking_date"`
-	BookingTime     string   `json:"booking_time"`
-	ChairNumber     int      `json:"chair_number"`
-	Notes           string   `json:"notes"`
-	ServiceName     string   `json:"service_name"`
-	ServiceDesc     *string  `json:"service_description"`
-	DurationMinutes int      `json:"duration_minutes"`
-	Price           float64  `json:"price"`
-	TotalAmount     float64  `json:"total_amount"`
-	BarberName      string   `json:"barber_name"`
-	BarberRating    float64  `json:"barber_rating"`
-	PaymentMethod   *string  `json:"payment_method"`
-	PaymentStatus   *string  `json:"payment_status"`
+	ID              int64   `json:"id"`
+	TicketCode      string  `json:"ticket_code"`
+	Status          string  `json:"status"`
+	BookingDate     string  `json:"booking_date"`
+	BookingTime     string  `json:"booking_time"`
+	ChairNumber     int     `json:"chair_number"`
+	Notes           string  `json:"notes"`
+	ServiceName     string  `json:"service_name"`
+	ServiceDesc     *string `json:"service_description"`
+	DurationMinutes int     `json:"duration_minutes"`
+	Price           float64 `json:"price"`
+	TotalAmount     float64 `json:"total_amount"`
+	BarberName      string  `json:"barber_name"`
+	BarberRating    float64 `json:"barber_rating"`
+	PaymentMethod   *string `json:"payment_method"`
+	PaymentStatus   *string `json:"payment_status"`
 }
 
 type ticketStats struct {
@@ -93,6 +92,7 @@ func myTicketsHandler(db *pgxpool.Pool, sessions *sessionStore) http.HandlerFunc
 			 ORDER BY b.booking_date ASC, b.booking_time ASC`, userID,
 		)
 		if err != nil {
+			log.Printf("my-tickets query failed for user %d: %v", userID, err)
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal mengambil data tiket."})
 			return
 		}
@@ -110,6 +110,7 @@ func myTicketsHandler(db *pgxpool.Pool, sessions *sessionStore) http.HandlerFunc
 			if err := rows.Scan(&item.ID, &item.TicketCode, &item.Status, &date, &item.BookingTime, &item.ChairNumber,
 				&item.Notes, &item.ServiceName, &item.ServiceDesc, &item.DurationMinutes, &item.Price,
 				&item.TotalAmount, &item.BarberName, &item.BarberRating, &item.PaymentMethod, &item.PaymentStatus); err != nil {
+				log.Printf("my-tickets row scan failed for user %d: %v", userID, err)
 				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal membaca data tiket."})
 				return
 			}
@@ -151,71 +152,5 @@ func myTicketsHandler(db *pgxpool.Pool, sessions *sessionStore) http.HandlerFunc
 		}
 
 		writeJSON(w, http.StatusOK, resp)
-	}
-}
-
-// cancelBookingHandler godoc
-// @Summary      Batalkan booking milik user yang login
-// @Tags         bookings
-// @Produce      json
-// @Security     BearerAuth
-// @Param        id   path      int  true  "ID booking"
-// @Success      200  {object}  map[string]string
-// @Failure      401  {object}  map[string]string
-// @Failure      404  {object}  map[string]string
-// @Failure      409  {object}  map[string]string
-// @Router       /bookings/{id}/cancel [patch]
-func cancelBookingHandler(db *pgxpool.Pool, sessions *sessionStore) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPatch {
-			w.Header().Set("Allow", http.MethodPatch)
-			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "Metode tidak diizinkan."})
-			return
-		}
-
-		userID, ok := sessions.userIDFromRequest(r)
-		if !ok {
-			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "Silakan login terlebih dahulu."})
-			return
-		}
-
-		// Path: /api/bookings/{id}/cancel
-		parts := strings.Split(strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/bookings/"), "/"), "/")
-		if len(parts) != 2 || parts[1] != "cancel" {
-			http.NotFound(w, r)
-			return
-		}
-		bookingID, err := strconv.ParseInt(parts[0], 10, 64)
-		if err != nil || bookingID < 1 {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "ID booking tidak valid."})
-			return
-		}
-
-		tag, err := db.Exec(r.Context(),
-			`UPDATE bookings SET status = 'Batal', updated_at = CURRENT_TIMESTAMP
-			 WHERE id = $1 AND user_id = $2 AND status IN ('Menunggu', 'Dikonfirmasi')`,
-			bookingID, userID,
-		)
-		if err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal membatalkan booking."})
-			return
-		}
-		if tag.RowsAffected() == 0 {
-			var exists bool
-			if err := db.QueryRow(r.Context(),
-				`SELECT EXISTS (SELECT 1 FROM bookings WHERE id = $1 AND user_id = $2)`, bookingID, userID,
-			).Scan(&exists); err != nil {
-				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal membatalkan booking."})
-				return
-			}
-			if !exists {
-				writeJSON(w, http.StatusNotFound, map[string]string{"error": "Booking tidak ditemukan."})
-				return
-			}
-			writeJSON(w, http.StatusConflict, map[string]string{"error": "Booking ini tidak dapat dibatalkan lagi."})
-			return
-		}
-
-		writeJSON(w, http.StatusOK, map[string]string{"message": "Booking berhasil dibatalkan."})
 	}
 }

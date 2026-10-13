@@ -48,19 +48,21 @@ func main() {
 	mux.HandleFunc("/api/logout", logoutHandler(sessions))
 	mux.HandleFunc("/api/services", listServicesHandler(db))
 	mux.HandleFunc("/api/barbers", listBarbersHandler(db))
-	mux.HandleFunc("/api/bookings", createBookingHandler(db, sessions))
-	mux.HandleFunc("/api/bookings/", cancelBookingHandler(db, sessions))
-	mux.HandleFunc("/api/my-tickets", myTicketsHandler(db, sessions))
 	createBooking := createBookingHandler(db, sessions)
 	listBookings := listUserBookingsHandler(db, sessions)
 	mux.HandleFunc("/api/bookings", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
+		switch r.Method {
+		case http.MethodGet:
 			listBookings(w, r)
-			return
+		case http.MethodPost:
+			createBooking(w, r)
+		default:
+			w.Header().Set("Allow", http.MethodGet+", "+http.MethodPost)
+			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "Metode tidak diizinkan."})
 		}
-		createBooking(w, r)
 	})
 	mux.HandleFunc("/api/bookings/", patchUserBookingHandler(db, sessions))
+	mux.HandleFunc("/api/my-tickets", myTicketsHandler(db, sessions))
 	mux.HandleFunc("/api/availability", getAvailabilityHandler(db))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
