@@ -49,6 +49,8 @@ func main() {
 	mux.HandleFunc("/api/services", listServicesHandler(db))
 	mux.HandleFunc("/api/barbers", listBarbersHandler(db))
 	mux.HandleFunc("/api/bookings", createBookingHandler(db, sessions))
+	mux.HandleFunc("/api/bookings/", cancelBookingHandler(db, sessions))
+	mux.HandleFunc("/api/my-tickets", myTicketsHandler(db, sessions))
 	mux.HandleFunc("/api/availability", getAvailabilityHandler(db))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
