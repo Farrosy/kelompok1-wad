@@ -8,6 +8,84 @@
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
+.hb-auth-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(20, 18, 16, 0.58);
+}
+
+.hb-auth-modal {
+  position: relative;
+  width: min(100%, 430px);
+  padding: 36px 32px 30px;
+  border: 1px solid #eee9df;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+  text-align: center;
+}
+
+.hb-auth-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 15px;
+  border: 0;
+  background: transparent;
+  color: #78716c;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.hb-auth-modal-icon {
+  display: inline-grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 50%;
+  background: #f7f3eb;
+  color: #9a6d38;
+}
+
+.hb-auth-modal h2 {
+  margin: 18px 0 8px;
+  color: #1c1917;
+  font: 500 24px/1.25 'Playfair Display', Georgia, serif;
+}
+
+.hb-auth-modal p {
+  margin: 0 auto 24px;
+  max-width: 340px;
+  color: #78716c;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.hb-auth-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.hb-auth-modal-actions a {
+  display: block;
+  padding: 12px 10px;
+  border: 1px solid #1c1917;
+  border-radius: 7px;
+  color: #1c1917;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.hb-auth-modal-actions .hb-auth-login-btn {
+  background: #1c1917;
+  color: #fff;
+}
+
 .hb-section-inner {
   max-width: 1120px;
   margin: 0 auto;
@@ -701,6 +779,31 @@
 
 .hb-time-btn:hover {
   border-color: #c8a86b;
+}
+
+.hb-time-btn:disabled,
+.hb-time-btn.is-unavailable {
+  border-color: #e8e4dd;
+  background: #f3f1ed;
+  color: #aaa39a;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.hb-time-btn:disabled small,
+.hb-time-btn.is-unavailable small {
+  color: #a8a29e;
+}
+
+.hb-availability-hint,
+.hb-availability-error {
+  margin: 0 0 12px;
+  color: #78716c;
+  font-size: 12px;
+}
+
+.hb-availability-error {
+  color: #b42318;
 }
 
 .hb-time-btn.is-active {

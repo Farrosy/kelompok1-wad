@@ -64,6 +64,19 @@ definitions:
       password:
         type: string
     type: object
+  main.myTicketsResponse:
+    properties:
+      active:
+        $ref: '#/definitions/main.ticketBooking'
+      history:
+        items:
+          $ref: '#/definitions/main.ticketBooking'
+        type: array
+      stats:
+        $ref: '#/definitions/main.ticketStats'
+      user:
+        $ref: '#/definitions/main.registeredUser'
+    type: object
   main.registerRequest:
     properties:
       email:
@@ -107,6 +120,48 @@ definitions:
         type: string
       price:
         type: number
+    type: object
+  main.ticketBooking:
+    properties:
+      barber_name:
+        type: string
+      barber_rating:
+        type: number
+      booking_date:
+        type: string
+      booking_time:
+        type: string
+      chair_number:
+        type: integer
+      duration_minutes:
+        type: integer
+      id:
+        type: integer
+      notes:
+        type: string
+      payment_method:
+        type: string
+      payment_status:
+        type: string
+      price:
+        type: number
+      service_description:
+        type: string
+      service_name:
+        type: string
+      status:
+        type: string
+      ticket_code:
+        type: string
+      total_amount:
+        type: number
+    type: object
+  main.ticketStats:
+    properties:
+      favorite_barber:
+        type: string
+      visits:
+        type: integer
     type: object
   main.userBooking:
     properties:
@@ -439,6 +494,26 @@ paths:
       summary: Logout dan hapus sesi
       tags:
       - auth
+  /my-tickets:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.myTicketsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Tiket aktif, riwayat kunjungan, dan statistik user yang login
+      tags:
+      - bookings
   /profile:
     get:
       produces:
