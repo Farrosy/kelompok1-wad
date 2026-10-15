@@ -472,6 +472,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/my-tickets": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Tiket aktif, riwayat kunjungan, dan statistik user yang login",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.myTicketsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/profile": {
             "get": {
                 "security": [
@@ -692,6 +725,26 @@ const docTemplate = `{
                 }
             }
         },
+        "main.myTicketsResponse": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "$ref": "#/definitions/main.ticketBooking"
+                },
+                "history": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/main.ticketBooking"
+                    }
+                },
+                "stats": {
+                    "$ref": "#/definitions/main.ticketStats"
+                },
+                "user": {
+                    "$ref": "#/definitions/main.registeredUser"
+                }
+            }
+        },
         "main.registerRequest": {
             "type": "object",
             "properties": {
@@ -757,6 +810,70 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number"
+                }
+            }
+        },
+        "main.ticketBooking": {
+            "type": "object",
+            "properties": {
+                "barber_name": {
+                    "type": "string"
+                },
+                "barber_rating": {
+                    "type": "number"
+                },
+                "booking_date": {
+                    "type": "string"
+                },
+                "booking_time": {
+                    "type": "string"
+                },
+                "chair_number": {
+                    "type": "integer"
+                },
+                "duration_minutes": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "payment_method": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "service_description": {
+                    "type": "string"
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "ticket_code": {
+                    "type": "string"
+                },
+                "total_amount": {
+                    "type": "number"
+                }
+            }
+        },
+        "main.ticketStats": {
+            "type": "object",
+            "properties": {
+                "favorite_barber": {
+                    "type": "string"
+                },
+                "visits": {
+                    "type": "integer"
                 }
             }
         },

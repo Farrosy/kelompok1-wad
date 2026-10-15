@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   MapPin,
   Clock,
@@ -60,6 +61,24 @@ const FACILITIES = [
   },
 ];
 
+const BOOKING_DRAFT_KEY = "barber-one-booking-draft";
+const BOOKING_DRAFT_TTL_MS = 60 * 60 * 1000;
+
+function readBookingDraft() {
+  try {
+    const draft = JSON.parse(localStorage.getItem(BOOKING_DRAFT_KEY) || "null");
+    if (!draft) return {};
+    if (!draft.savedAt || Date.now() - draft.savedAt >= BOOKING_DRAFT_TTL_MS) {
+      localStorage.removeItem(BOOKING_DRAFT_KEY);
+      return {};
+    }
+    return draft;
+  } catch {
+    localStorage.removeItem(BOOKING_DRAFT_KEY);
+    return {};
+  }
+}
+
 /* ── Helpers ── */
 function formatRupiah(num) {
   return new Intl.NumberFormat("id-ID", {
@@ -71,24 +90,42 @@ function formatRupiah(num) {
 
 /* ── Component ── */
 export default function HomeBookingPage() {
+  const [initialDraft] = useState(readBookingDraft);
   const [barbers, setBarbers] = useState([]);
   const [barbersLoading, setBarbersLoading] = useState(true);
   const [barbersError, setBarbersError] = useState("");
   const [services, setServices] = useState([]);
   const [servicesLoading, setServicesLoading] = useState(true);
   const [servicesError, setServicesError] = useState("");
-  const [selectedBarber, setSelectedBarber] = useState(null);
-  const [selectedServices, setSelectedServices] = useState([]);
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerNotes, setCustomerNotes] = useState("");
-  const [selectedPayment, setSelectedPayment] = useState("Tunai");
+  const [selectedBarber, setSelectedBarber] = useState(initialDraft.selectedBarber ?? null);
+  const [selectedServices, setSelectedServices] = useState(initialDraft.selectedServices ?? []);
+  const [selectedDay, setSelectedDay] = useState(initialDraft.selectedDay ?? null);
+  const [selectedTime, setSelectedTime] = useState(initialDraft.selectedTime ?? null);
+  const [customerName, setCustomerName] = useState(initialDraft.customerName ?? "");
+  const [customerPhone, setCustomerPhone] = useState(initialDraft.customerPhone ?? "");
+  const [customerNotes, setCustomerNotes] = useState(initialDraft.customerNotes ?? "");
+  const [selectedPayment, setSelectedPayment] = useState(initialDraft.selectedPayment ?? "Tunai");
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [bookingDone, setBookingDone] = useState(false);
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState("");
   const [bookingTicket, setBookingTicket] = useState("");
+  const [availableSlots, setAvailableSlots] = useState(null);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState("");
+
+  useEffect(() => {
+    const savedAt = Date.now();
+    localStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify({
+      selectedBarber, selectedServices, selectedDay, selectedTime,
+      customerName, customerPhone, customerNotes, selectedPayment,
+      savedAt,
+    }));
+    const expiryTimer = window.setTimeout(() => {
+      localStorage.removeItem(BOOKING_DRAFT_KEY);
+    }, BOOKING_DRAFT_TTL_MS);
+    return () => window.clearTimeout(expiryTimer);
+  }, [selectedBarber, selectedServices, selectedDay, selectedTime, customerName, customerPhone, customerNotes, selectedPayment]);
 
   useEffect(() => {
     async function getServices() {
@@ -111,6 +148,51 @@ export default function HomeBookingPage() {
 
     getServices();
   }, []);
+
+  useEffect(() => {
+    if (!selectedBarber || !selectedDay || selectedServices.length === 0) {
+      setAvailableSlots(null);
+      setAvailabilityError("");
+      setAvailabilityLoading(false);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    setAvailabilityLoading(true);
+    setAvailabilityError("");
+    setAvailableSlots(null);
+
+    async function loadAvailability() {
+      try {
+        const params = new URLSearchParams({
+          barber_id: String(selectedBarber),
+          service_id: String(selectedServices[0]),
+          date: selectedDay,
+        });
+        const response = await fetch(`${API_BASE_URL}/api/availability?${params}`, {
+          signal: controller.signal,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Gagal memeriksa ketersediaan jadwal.");
+        setAvailableSlots(data.available_slots || []);
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          setAvailabilityError(error.message || "Tidak dapat memeriksa ketersediaan jadwal.");
+        }
+      } finally {
+        if (!controller.signal.aborted) setAvailabilityLoading(false);
+      }
+    }
+
+    loadAvailability();
+    return () => controller.abort();
+  }, [selectedBarber, selectedDay, selectedServices]);
+
+  useEffect(() => {
+    if (selectedTime && availableSlots && !availableSlots.includes(selectedTime)) {
+      setSelectedTime(null);
+    }
+  }, [availableSlots, selectedTime]);
 
   useEffect(() => {
     async function getBarbers() {
@@ -140,17 +222,23 @@ export default function HomeBookingPage() {
 
   function toggleService(id) {
     setSelectedServices((previous) => (previous[0] === id ? [] : [id]));
+    setSelectedTime(null);
   }
 
   async function handleBook(e) {
     e.preventDefault();
     if (!selectedBarber || selectedServices.length === 0 || !selectedDay || !selectedTime) return;
 
+    const token = localStorage.getItem("barber-one-token") || sessionStorage.getItem("barber-one-token");
+    if (!token) {
+      setShowLoginModal(true);
+      return;
+    }
+
     setBookingSubmitting(true);
     setBookingError("");
 
     try {
-      const token = localStorage.getItem("barber-one-token") || sessionStorage.getItem("barber-one-token");
       const response = await fetch(`${API_BASE_URL}/api/bookings`, {
         method: "POST",
         headers: {
@@ -175,6 +263,7 @@ export default function HomeBookingPage() {
       }
 
       setBookingTicket(data.booking.ticket_code);
+      localStorage.removeItem(BOOKING_DRAFT_KEY);
       setBookingDone(true);
     } catch {
       setBookingError("Tidak dapat terhubung ke server.");
@@ -185,6 +274,22 @@ export default function HomeBookingPage() {
 
   return (
     <div className="hb-page">
+      {showLoginModal && (
+        <div className="hb-auth-modal-backdrop" role="presentation" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) setShowLoginModal(false);
+        }}>
+          <section className="hb-auth-modal" role="dialog" aria-modal="true" aria-labelledby="hb-auth-modal-title">
+            <button className="hb-auth-modal-close" type="button" aria-label="Tutup" onClick={() => setShowLoginModal(false)}>×</button>
+            <span className="hb-auth-modal-icon"><User size={22} /></span>
+            <h2 id="hb-auth-modal-title">Masuk untuk melanjutkan</h2>
+            <p>Reservasi Anda sudah tersimpan sementara. Masuk atau buat akun untuk mengonfirmasi booking.</p>
+            <div className="hb-auth-modal-actions">
+              <Link className="hb-auth-login-btn" to="/login">Masuk</Link>
+              <Link className="hb-auth-register-btn" to="/register">Buat Akun</Link>
+            </div>
+          </section>
+        </div>
+      )}
       {/* ── HERO ── */}
       <section className="hb-hero">
         <div className="hb-hero-inner">
@@ -361,7 +466,10 @@ export default function HomeBookingPage() {
                           value={b.id}
                           disabled={!b.available}
                           checked={selectedBarber === b.id}
-                          onChange={() => setSelectedBarber(b.id)}
+                          onChange={() => {
+                            setSelectedBarber(b.id);
+                            setSelectedTime(null);
+                          }}
                           className="hb-sr-only"
                         />
                         <div className="hb-barber-avatar" style={{ background: "#c8a86b" }}>
@@ -411,7 +519,10 @@ export default function HomeBookingPage() {
                         key={d.value}
                         type="button"
                         className={`hb-day-btn${selectedDay === d.value ? " is-active" : ""}`}
-                        onClick={() => setSelectedDay(d.value)}
+                        onClick={() => {
+                          setSelectedDay(d.value);
+                          setSelectedTime(null);
+                        }}
                       >
                         <span className="hb-day-name">{d.day}</span>
                         <span className="hb-day-date">{d.date}</span>
@@ -421,19 +532,33 @@ export default function HomeBookingPage() {
                   </div>
 
                   <p className="hb-slots-label">SLOT WAKTU TERSEDIA</p>
+                  {!selectedBarber || !selectedDay || selectedServices.length === 0 ? (
+                    <p className="hb-availability-hint">Pilih layanan, barber, dan tanggal untuk melihat slot yang tersedia.</p>
+                  ) : availabilityLoading ? (
+                    <p className="hb-availability-hint" role="status">Memeriksa ketersediaan slot...</p>
+                  ) : availabilityError ? (
+                    <p className="hb-availability-error" role="alert">{availabilityError} Slot belum dapat diverifikasi.</p>
+                  ) : availableSlots?.length === 0 ? (
+                    <p className="hb-availability-hint">Tidak ada slot tersedia untuk pilihan ini.</p>
+                  ) : null}
                   <div className="hb-time-grid">
-                    {TIME_SLOTS.map((t) => (
+                    {TIME_SLOTS.map((t) => {
+                      const needsAvailability = selectedBarber && selectedDay && selectedServices.length > 0;
+                      const slotUnavailable = needsAvailability && (availabilityLoading || Boolean(availabilityError) || !availableSlots?.includes(t));
+                      return (
                       <button
                         key={t}
                         type="button"
-                        className={`hb-time-btn${selectedTime === t ? " is-active" : ""}`}
+                        className={`hb-time-btn${selectedTime === t ? " is-active" : ""}${slotUnavailable ? " is-unavailable" : ""}`}
+                        disabled={slotUnavailable}
                         onClick={() => setSelectedTime(t)}
                       >
                         {t}
                         <br />
-                        <small>TERSEDIA</small>
+                        <small>{slotUnavailable ? "PENUH" : "TERSEDIA"}</small>
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -471,8 +596,13 @@ export default function HomeBookingPage() {
                             type="tel"
                             className="hb-input hb-input-phone"
                             placeholder="8xxx-xxxx-xxxx"
+                            inputMode="numeric"
+                            autoComplete="tel-national"
+                            maxLength={13}
                             value={customerPhone}
-                            onChange={(e) => setCustomerPhone(e.target.value)}
+                            onChange={(e) =>
+                              setCustomerPhone(e.target.value.replace(/\D/g, "").slice(0, 13))
+                            }
                             required
                           />
                         </div>

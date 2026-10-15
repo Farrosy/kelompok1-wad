@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../../config/api";
+import { useToast } from "../ToastProvider";
 import barberOneLogo from "../../assets/images/logo-barber-one.png";
 import "./Navigation.css";
 
@@ -12,6 +13,7 @@ const customerNavItems = [
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const showToast = useToast();
   const isCashier = location.pathname.startsWith("/kasir");
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -203,6 +205,13 @@ export default function Navbar() {
             end={end}
             key={to}
             to={to}
+            onClick={(event) => {
+              const token = localStorage.getItem("barber-one-token") || sessionStorage.getItem("barber-one-token");
+              if (to === "/dashboard/tickets" && !token) {
+                event.preventDefault();
+                showToast("error", "Anda wajib login untuk membuka Tiket & Profil Saya.");
+              }
+            }}
           >
             {label}
           </NavLink>
