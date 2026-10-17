@@ -44,6 +44,7 @@ type myTicketsResponse struct {
 
 // myTicketsHandler godoc
 // @Summary      Tiket aktif, riwayat kunjungan, dan statistik user yang login
+// @Description  Hanya menampilkan booking yang pembayarannya sudah lunas.
 // @Tags         bookings
 // @Produce      json
 // @Security     BearerAuth
@@ -88,7 +89,7 @@ func myTicketsHandler(db *pgxpool.Pool, sessions *sessionStore) http.HandlerFunc
 			     SELECT total_amount, payment_method, payment_status
 			     FROM transactions WHERE booking_id = b.id ORDER BY paid_at DESC LIMIT 1
 			 ) t ON TRUE
-			 WHERE b.user_id = $1
+			 WHERE b.user_id = $1 AND t.payment_status = 'Lunas'
 			 ORDER BY b.booking_date ASC, b.booking_time ASC`, userID,
 		)
 		if err != nil {

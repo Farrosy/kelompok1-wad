@@ -40,11 +40,17 @@ type midtransSnapResponse struct {
 	RedirectURL string `json:"redirect_url"`
 }
 
-func (m *midtransClient) createSnap(ctx context.Context, orderID, name, phone string, amount float64, service string) (midtransSnapResponse, error) {
+func (m *midtransClient) createSnap(ctx context.Context, orderID, name, phone string, amount float64, service, finishURL string, paymentStartedAt time.Time) (midtransSnapResponse, error) {
 	payload := map[string]any{
 		"transaction_details": map[string]any{"order_id": orderID, "gross_amount": int64(amount)},
 		"customer_details":    map[string]string{"first_name": name, "phone": phone},
 		"item_details":        []map[string]any{{"id": "booking", "price": int64(amount), "quantity": 1, "name": service}},
+		"callbacks":           map[string]string{"finish": finishURL},
+		"expiry": map[string]any{
+			"start_time": paymentStartedAt.In(time.FixedZone("WIB", 7*60*60)).Format("2006-01-02 15:04:05 -0700"),
+			"duration":   15,
+			"unit":       "minutes",
+		},
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {
@@ -66,7 +72,7 @@ func (m *midtransClient) createSnap(ctx context.Context, orderID, name, phone st
 		return midtransSnapResponse{}, err
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return midtransSnapResponse{}, fmt.Errorf("Midtrans returned HTTP %d", resp.StatusCode)
+		return midtransSnapResponse{}, fmt.Errorf("Midtrans returned HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(data)))
 	}
 	var result midtransSnapResponse
 	if err := json.Unmarshal(data, &result); err != nil {
@@ -104,7 +110,7 @@ type midtransNotificationError struct {
 
 // midtransNotificationHandler godoc
 // @Summary      Terima notifikasi pembayaran Midtrans
-// @Description  Endpoint webhook publik untuk notifikasi transaksi Midtrans (Snap). Signature diverifikasi dengan SHA-512 dari order_id + status_code + gross_amount + MIDTRANS_SERVER_KEY. Status settlement dan capture dengan fraud_status accept menandai transaksi Lunas; pending tetap Menunggu; deny, cancel, dan expire menandai Gagal serta membatalkan booking yang masih Menunggu. Status transaksi lain diabaikan dan tetap dibalas 200.
+// @Description  Endpoint webhook publik untuk notifikasi transaksi Midtrans (Snap). Signature diverifikasi dengan SHA-512 dari order_id + status_code + gross_amount + MIDTRANS_SERVER_KEY. Status settlement dan capture dengan fraud_status accept menandai transaksi Lunas serta booking Dikonfirmasi; pending tetap Menunggu; deny, cancel, dan expire menandai Gagal serta membatalkan booking yang masih Menunggu. Status transaksi lain diabaikan dan tetap dibalas 200.
 // @Tags         payments
 // @Accept       json
 // @Produce      json
@@ -165,6 +171,13 @@ func midtransNotificationHandler(db *pgxpool.Pool) http.HandlerFunc {
 			_, err = db.Exec(r.Context(), `UPDATE bookings SET status='Batal', updated_at=CURRENT_TIMESTAMP WHERE id=(SELECT booking_id FROM transactions WHERE gateway_order_id=$1) AND status='Menunggu'`, n.OrderID)
 			if err != nil {
 				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal melepas slot booking."})
+				return
+			}
+		} else if status == "Lunas" {
+			_, err = db.Exec(r.Context(), `UPDATE bookings SET status='Dikonfirmasi', updated_at=CURRENT_TIMESTAMP WHERE id=(SELECT booking_id FROM transactions WHERE gateway_order_id=$1) AND status='Menunggu'`, n.OrderID)
+			if err != nil {
+				log.Printf("Midtrans notification: failed confirming booking for order %q: %v", n.OrderID, err)
+				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal mengonfirmasi booking."})
 				return
 			}
 		}

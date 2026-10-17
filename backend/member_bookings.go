@@ -65,6 +65,7 @@ func listUserBookingsHandler(db *pgxpool.Pool, sessions *sessionStore) http.Hand
 		JOIN services s ON s.id = b.service_id
 		JOIN barber br ON br.id = b.barber_id
 		WHERE b.user_id = $1
+		  AND EXISTS (SELECT 1 FROM transactions t WHERE t.booking_id = b.id AND t.payment_status = 'Lunas')
 		ORDER BY b.booking_date DESC, b.booking_time DESC, b.id DESC`, userID)
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal mengambil daftar booking."})

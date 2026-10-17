@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -38,6 +39,7 @@ type createBookingResponse struct {
 
 // createBookingHandler godoc
 // @Summary      Membuat booking
+// @Description  Mengunci slot sementara selama 15 menit dan membuat sesi pembayaran Midtrans. Booking baru muncul di tiket dan berstatus Dikonfirmasi setelah pembayaran lunas. Jika waktu pembayaran habis, booking dibatalkan dan slot dibuka kembali.
 // @Tags         bookings
 // @Accept       json
 // @Produce      json
@@ -193,12 +195,16 @@ func createBookingHandler(db *pgxpool.Pool, sessions *sessionStore) http.Handler
 			return
 		}
 		gatewayOrderID := booking.TicketCode + "-" + strconv.FormatInt(time.Now().Unix(), 10)
-		snap, err := midtrans.createSnap(r.Context(), gatewayOrderID, input.CustomerName, input.CustomerPhone, servicePrice, serviceName)
+		finishURL := strings.TrimRight(getEnv("FRONTEND_ORIGIN", "http://localhost:5173"), "/") + "/dashboard/tickets?payment=return&ticket_code=" + booking.TicketCode
+		paymentStartedAt := time.Now()
+		paymentExpiresAt := paymentStartedAt.Add(15 * time.Minute)
+		snap, err := midtrans.createSnap(r.Context(), gatewayOrderID, input.CustomerName, input.CustomerPhone, servicePrice, serviceName, finishURL, paymentStartedAt)
 		if err != nil {
+			log.Printf("Midtrans Snap session creation failed for order %q: %v", gatewayOrderID, err)
 			writeJSON(w, http.StatusBadGateway, map[string]string{"error": "Gagal membuat sesi pembayaran. Booking belum dikonfirmasi, silakan coba lagi."})
 			return
 		}
-		_, err = tx.Exec(r.Context(), `INSERT INTO transactions (booking_id, total_amount, payment_method, payment_status, gateway_order_id, gateway_token, gateway_redirect_url) VALUES ($1, $2, 'Midtrans', 'Menunggu', $3, $4, $5)`, booking.ID, servicePrice, gatewayOrderID, snap.Token, snap.RedirectURL)
+		_, err = tx.Exec(r.Context(), `INSERT INTO transactions (booking_id, total_amount, payment_method, payment_status, gateway_order_id, gateway_token, gateway_redirect_url, expires_at, paid_at) VALUES ($1, $2, 'Midtrans', 'Menunggu', $3, $4, $5, $6, NULL)`, booking.ID, servicePrice, gatewayOrderID, snap.Token, snap.RedirectURL, paymentExpiresAt)
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal menyimpan transaksi pembayaran."})
 			return
