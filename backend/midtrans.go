@@ -86,6 +86,18 @@ type midtransNotification struct {
 	FraudStatus       string `json:"fraud_status"`
 }
 
+// midtransNotificationHandler godoc
+// @Summary      Terima notifikasi pembayaran Midtrans
+// @Description  Webhook untuk pembaruan status transaksi. Signature diverifikasi menggunakan Server Key.
+// @Tags         payments
+// @Accept       json
+// @Produce      json
+// @Param        body body midtransNotification true "Payload notifikasi Midtrans"
+// @Success      200 {object} map[string]string
+// @Failure      400 {object} map[string]string "Payload tidak valid"
+// @Failure      401 {object} map[string]string "Signature tidak valid"
+// @Failure      503 {object} map[string]string "Payment gateway belum dikonfigurasi"
+// @Router       /payments/midtrans/notification [post]
 func midtransNotificationHandler(db *pgxpool.Pool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
