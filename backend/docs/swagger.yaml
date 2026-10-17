@@ -70,17 +70,41 @@ definitions:
     type: object
   main.midtransNotification:
     properties:
+      currency:
+        type: string
       fraud_status:
         type: string
       gross_amount:
         type: string
+      merchant_id:
+        type: string
       order_id:
+        type: string
+      payment_type:
+        type: string
+      settlement_time:
         type: string
       signature_key:
         type: string
       status_code:
         type: string
+      status_message:
+        type: string
+      transaction_id:
+        type: string
       transaction_status:
+        type: string
+      transaction_time:
+        type: string
+    type: object
+  main.midtransNotificationError:
+    properties:
+      error:
+        type: string
+    type: object
+  main.midtransNotificationResponse:
+    properties:
+      message:
         type: string
     type: object
   main.myTicketsResponse:
@@ -537,8 +561,12 @@ paths:
     post:
       consumes:
       - application/json
-      description: Webhook untuk pembaruan status transaksi. Signature diverifikasi
-        menggunakan Server Key.
+      description: Endpoint webhook publik untuk notifikasi transaksi Midtrans (Snap).
+        Signature diverifikasi dengan SHA-512 dari order_id + status_code + gross_amount
+        + MIDTRANS_SERVER_KEY. Status settlement dan capture dengan fraud_status accept
+        menandai transaksi Lunas; pending tetap Menunggu; deny, cancel, dan expire
+        menandai Gagal serta membatalkan booking yang masih Menunggu. Status transaksi
+        lain diabaikan dan tetap dibalas 200.
       parameters:
       - description: Payload notifikasi Midtrans
         in: body
@@ -550,29 +578,29 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Notifikasi diproses atau status transaksi diabaikan
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/main.midtransNotificationResponse'
         "400":
-          description: Payload tidak valid
+          description: Payload JSON tidak valid
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/main.midtransNotificationError'
         "401":
           description: Signature tidak valid
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/main.midtransNotificationError'
+        "405":
+          description: Metode selain POST tidak diizinkan
+          schema:
+            $ref: '#/definitions/main.midtransNotificationError'
+        "500":
+          description: Gagal memperbarui transaksi atau melepas slot booking
+          schema:
+            $ref: '#/definitions/main.midtransNotificationError'
         "503":
           description: Payment gateway belum dikonfigurasi
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/main.midtransNotificationError'
       summary: Terima notifikasi pembayaran Midtrans
       tags:
       - payments

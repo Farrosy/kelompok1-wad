@@ -81,6 +81,7 @@ function arrivalLabel(booking) {
 
 export default function TicketsPage() {
   const navigate = useNavigate();
+  const paymentReturned = new URLSearchParams(window.location.search).get("payment") === "return";
   const [copied, setCopied] = useState(false);
   const [year, setYear] = useState("SEMUA");
   const [data, setData] = useState(null);
@@ -97,11 +98,14 @@ export default function TicketsPage() {
     }
 
     const controller = new AbortController();
-    fetch(`${API_BASE_URL}/api/my-tickets`, {
-      headers: { Authorization: `Bearer ${token}` },
-      signal: controller.signal,
-    })
-      .then(async (response) => {
+    let pollTimer;
+    let attempts = 0;
+    const loadTickets = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/my-tickets`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        });
         if (response.status === 401) {
           navigate("/login", { replace: true });
           return;
@@ -112,14 +116,24 @@ export default function TicketsPage() {
           return;
         }
         setData(body);
-      })
-      .catch((err) => {
+        const paymentPending = body.active && body.active.payment_status !== "Lunas";
+        if (paymentReturned && paymentPending && attempts < 10) {
+          attempts += 1;
+          pollTimer = window.setTimeout(loadTickets, 3000);
+        }
+      } catch (err) {
         if (err.name !== "AbortError") setError("Tidak dapat terhubung ke server.");
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadTickets();
 
-    return () => controller.abort();
-  }, [navigate]);
+    return () => {
+      controller.abort();
+      window.clearTimeout(pollTimer);
+    };
+  }, [navigate, paymentReturned]);
 
   const t = data?.active ?? null;
   const stats = data?.stats ?? { visits: 0, favorite_barber: "" };
@@ -199,6 +213,13 @@ export default function TicketsPage() {
         </header>
 
         {error && <p className="tp-error">{error}</p>}
+        {paymentReturned && !loading && (
+          <p className={`tp-payment-return${isPaid ? " is-success" : ""}`} role="status">
+            {isPaid
+              ? "Pembayaran berhasil dikonfirmasi Midtrans. Tiket reservasi Anda sudah diperbarui."
+              : "Checkout selesai. Kami sedang menunggu konfirmasi pembayaran dari Midtrans; status tiket diperbarui otomatis."}
+          </p>
+        )}
 
         {/* ── Active ticket ── */}
         {!t ? (
