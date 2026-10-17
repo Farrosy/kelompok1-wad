@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -139,6 +140,7 @@ func midtransNotificationHandler(db *pgxpool.Pool) http.HandlerFunc {
 		}
 		_, err = db.Exec(r.Context(), `UPDATE transactions SET payment_method=$1, payment_status=$2, paid_at=CASE WHEN $2='Lunas' THEN CURRENT_TIMESTAMP ELSE paid_at END WHERE gateway_order_id=$3`, paymentMethod, status, n.OrderID)
 		if err != nil {
+			log.Printf("Midtrans notification: failed updating transaction for order %q: %v", n.OrderID, err)
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal memperbarui status pembayaran."})
 			return
 		}
