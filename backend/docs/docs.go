@@ -706,6 +706,12 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "payment_redirect_url": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "type": "string"
+                },
                 "status": {
                     "type": "string"
                 },

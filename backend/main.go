@@ -63,6 +63,7 @@ func main() {
 	})
 	mux.HandleFunc("/api/bookings/", patchUserBookingHandler(db, sessions))
 	mux.HandleFunc("/api/my-tickets", myTicketsHandler(db, sessions))
+	mux.HandleFunc("/api/payments/midtrans/notification", midtransNotificationHandler(db))
 	mux.HandleFunc("/api/availability", getAvailabilityHandler(db))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {

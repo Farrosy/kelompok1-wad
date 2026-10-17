@@ -329,7 +329,7 @@ export default function TicketsPage() {
                   <span>
                     <ShieldCheck size={15} /> STATUS PEMBAYARAN
                     <small>
-                      {isPaid ? `Sudah Lunas via ${t.payment_method}` : "Belum dibayar • bayar langsung di kasir"}
+                      {isPaid ? `Sudah Lunas via ${t.payment_method}` : "Menunggu pembayaran gateway"}
                     </small>
                   </span>
                   <CheckCircle2 size={18} className={isPaid ? "tp-green" : "tp-muted-icon"} />

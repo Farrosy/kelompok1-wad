@@ -24,9 +24,11 @@ type createBookingRequest struct {
 }
 
 type createdBooking struct {
-	ID         int64  `json:"id"`
-	TicketCode string `json:"ticket_code"`
-	Status     string `json:"status"`
+	ID                 int64  `json:"id"`
+	TicketCode         string `json:"ticket_code"`
+	Status             string `json:"status"`
+	PaymentStatus      string `json:"payment_status"`
+	PaymentRedirectURL string `json:"payment_redirect_url"`
 }
 
 type createBookingResponse struct {
@@ -117,13 +119,20 @@ func createBookingHandler(db *pgxpool.Pool, sessions *sessionStore) http.Handler
 			return
 		}
 		var serviceDuration int
-		err = db.QueryRow(r.Context(), `SELECT duration_minutes FROM services WHERE id = $1`, input.ServiceID).Scan(&serviceDuration)
+		var serviceName string
+		var servicePrice float64
+		err = db.QueryRow(r.Context(), `SELECT duration_minutes, name, price FROM services WHERE id = $1`, input.ServiceID).Scan(&serviceDuration, &serviceName, &servicePrice)
 		if errors.Is(err, pgx.ErrNoRows) {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Layanan tidak ditemukan."})
 			return
 		}
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal memeriksa layanan."})
+			return
+		}
+		midtrans, err := newMidtransClient()
+		if err != nil {
+			writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "Pembayaran online belum tersedia. Booking belum dibuat."})
 			return
 		}
 		bookingStart, _ := time.Parse("15:04", input.BookingTime)
@@ -183,13 +192,26 @@ func createBookingHandler(db *pgxpool.Pool, sessions *sessionStore) http.Handler
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Booking gagal disimpan."})
 			return
 		}
+		gatewayOrderID := booking.TicketCode + "-" + strconv.FormatInt(time.Now().Unix(), 10)
+		snap, err := midtrans.createSnap(r.Context(), gatewayOrderID, input.CustomerName, input.CustomerPhone, servicePrice, serviceName)
+		if err != nil {
+			writeJSON(w, http.StatusBadGateway, map[string]string{"error": "Gagal membuat sesi pembayaran. Booking belum dikonfirmasi, silakan coba lagi."})
+			return
+		}
+		_, err = tx.Exec(r.Context(), `INSERT INTO transactions (booking_id, total_amount, payment_method, payment_status, gateway_order_id, gateway_token, gateway_redirect_url) VALUES ($1, $2, 'Midtrans', 'Menunggu', $3, $4, $5)`, booking.ID, servicePrice, gatewayOrderID, snap.Token, snap.RedirectURL)
+		if err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal menyimpan transaksi pembayaran."})
+			return
+		}
+		booking.PaymentStatus = "Menunggu"
+		booking.PaymentRedirectURL = snap.RedirectURL
 		if err := tx.Commit(r.Context()); err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Booking gagal disimpan."})
 			return
 		}
 
 		writeJSON(w, http.StatusCreated, createBookingResponse{
-			Message: "Booking berhasil dibuat.",
+			Message: "Booking dibuat. Selesaikan pembayaran untuk mengonfirmasi jadwal.",
 			Booking: booking,
 		})
 	}

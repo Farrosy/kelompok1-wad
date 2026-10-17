@@ -56,6 +56,9 @@ CREATE TABLE IF NOT EXISTS transactions (
     total_amount NUMERIC(12, 2) NOT NULL,
     payment_method VARCHAR(50) NOT NULL, -- 'Tunai', 'QRIS', 'Debit', 'Transfer'
     payment_status VARCHAR(30) NOT NULL DEFAULT 'Lunas',
+    gateway_order_id VARCHAR(100) UNIQUE,
+    gateway_token TEXT,
+    gateway_redirect_url TEXT,
     paid_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
