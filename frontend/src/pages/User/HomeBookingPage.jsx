@@ -104,7 +104,6 @@ export default function HomeBookingPage() {
   const [customerName, setCustomerName] = useState(initialDraft.customerName ?? "");
   const [customerPhone, setCustomerPhone] = useState(initialDraft.customerPhone ?? "");
   const [customerNotes, setCustomerNotes] = useState(initialDraft.customerNotes ?? "");
-  const [selectedPayment, setSelectedPayment] = useState(initialDraft.selectedPayment ?? "Tunai");
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [bookingDone, setBookingDone] = useState(false);
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
@@ -118,14 +117,14 @@ export default function HomeBookingPage() {
     const savedAt = Date.now();
     localStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify({
       selectedBarber, selectedServices, selectedDay, selectedTime,
-      customerName, customerPhone, customerNotes, selectedPayment,
+      customerName, customerPhone, customerNotes,
       savedAt,
     }));
     const expiryTimer = window.setTimeout(() => {
       localStorage.removeItem(BOOKING_DRAFT_KEY);
     }, BOOKING_DRAFT_TTL_MS);
     return () => window.clearTimeout(expiryTimer);
-  }, [selectedBarber, selectedServices, selectedDay, selectedTime, customerName, customerPhone, customerNotes, selectedPayment]);
+  }, [selectedBarber, selectedServices, selectedDay, selectedTime, customerName, customerPhone, customerNotes]);
 
   useEffect(() => {
     async function getServices() {
@@ -262,9 +261,11 @@ export default function HomeBookingPage() {
         return;
       }
 
-      setBookingTicket(data.booking.ticket_code);
-      localStorage.removeItem(BOOKING_DRAFT_KEY);
-      setBookingDone(true);
+      if (!data.booking.payment_redirect_url) {
+        setBookingError("Tautan pembayaran tidak tersedia. Booking belum dapat dikonfirmasi.");
+        return;
+      }
+      window.location.assign(data.booking.payment_redirect_url);
     } catch {
       setBookingError("Tidak dapat terhubung ke server.");
     } finally {
@@ -430,7 +431,6 @@ export default function HomeBookingPage() {
                   setCustomerName("");
                   setCustomerPhone("");
                   setCustomerNotes("");
-                  setSelectedPayment("Tunai");
                 }}
               >
                 Buat Reservasi Baru
@@ -693,24 +693,12 @@ export default function HomeBookingPage() {
                   <div className="hb-summary-metode">
                     <div>
                       <p className="hb-meta-label">METODE PEMBAYARAN</p>
-                      <div className="hb-pay-options">
-                        {["Tunai", "QRIS", "Transfer"].map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            className={`hb-pay-opt${selectedPayment === opt ? " is-active" : ""}`}
-                            onClick={() => setSelectedPayment(opt)}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
+                      <div className="hb-pay-options"><span className="hb-pay-opt is-active">Midtrans</span></div>
                     </div>
                     <CreditCard size={22} className="hb-pay-icon" />
                   </div>
                   <p className="hb-summary-note">
-                    Pembayaran dilakukan langsung di Atelier saat kedatangan.
-                    Booking ini bersifat konfirmasi slot, bukan pembayaran dimuka.
+                    Selesaikan pembayaran melalui Midtrans untuk mengonfirmasi booking. Metode pembayaran tersedia di halaman checkout.
                   </p>
                 </div>
 
