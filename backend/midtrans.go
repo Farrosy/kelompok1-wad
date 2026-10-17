@@ -138,7 +138,7 @@ func midtransNotificationHandler(db *pgxpool.Pool) http.HandlerFunc {
 			writeJSON(w, http.StatusOK, map[string]string{"message": "Status diabaikan."})
 			return
 		}
-		_, err = db.Exec(r.Context(), `UPDATE transactions SET payment_method=$1, payment_status=$2, paid_at=CASE WHEN $2='Lunas' THEN CURRENT_TIMESTAMP ELSE paid_at END WHERE gateway_order_id=$3`, paymentMethod, status, n.OrderID)
+		_, err = db.Exec(r.Context(), `UPDATE transactions SET payment_method=$1, payment_status=$2, paid_at=CASE WHEN $4 THEN CURRENT_TIMESTAMP ELSE paid_at END WHERE gateway_order_id=$3`, paymentMethod, status, n.OrderID, status == "Lunas")
 		if err != nil {
 			log.Printf("Midtrans notification: failed updating transaction for order %q: %v", n.OrderID, err)
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal memperbarui status pembayaran."})
