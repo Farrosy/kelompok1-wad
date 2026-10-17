@@ -507,7 +507,7 @@ const docTemplate = `{
         },
         "/payments/midtrans/notification": {
             "post": {
-                "description": "Webhook untuk pembaruan status transaksi. Signature diverifikasi menggunakan Server Key.",
+                "description": "Endpoint webhook publik untuk notifikasi transaksi Midtrans (Snap). Signature diverifikasi dengan SHA-512 dari order_id + status_code + gross_amount + MIDTRANS_SERVER_KEY. Status settlement dan capture dengan fraud_status accept menandai transaksi Lunas; pending tetap Menunggu; deny, cancel, dan expire menandai Gagal serta membatalkan booking yang masih Menunggu. Status transaksi lain diabaikan dan tetap dibalas 200.",
                 "consumes": [
                     "application/json"
                 ],
@@ -531,39 +531,39 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Notifikasi diproses atau status transaksi diabaikan",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/main.midtransNotificationResponse"
                         }
                     },
                     "400": {
-                        "description": "Payload tidak valid",
+                        "description": "Payload JSON tidak valid",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/main.midtransNotificationError"
                         }
                     },
                     "401": {
                         "description": "Signature tidak valid",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/main.midtransNotificationError"
+                        }
+                    },
+                    "405": {
+                        "description": "Metode selain POST tidak diizinkan",
+                        "schema": {
+                            "$ref": "#/definitions/main.midtransNotificationError"
+                        }
+                    },
+                    "500": {
+                        "description": "Gagal memperbarui transaksi atau melepas slot booking",
+                        "schema": {
+                            "$ref": "#/definitions/main.midtransNotificationError"
                         }
                     },
                     "503": {
                         "description": "Payment gateway belum dikonfigurasi",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/main.midtransNotificationError"
                         }
                     }
                 }
@@ -821,13 +821,25 @@ const docTemplate = `{
         "main.midtransNotification": {
             "type": "object",
             "properties": {
+                "currency": {
+                    "type": "string"
+                },
                 "fraud_status": {
                     "type": "string"
                 },
                 "gross_amount": {
                     "type": "string"
                 },
+                "merchant_id": {
+                    "type": "string"
+                },
                 "order_id": {
+                    "type": "string"
+                },
+                "payment_type": {
+                    "type": "string"
+                },
+                "settlement_time": {
                     "type": "string"
                 },
                 "signature_key": {
@@ -836,7 +848,32 @@ const docTemplate = `{
                 "status_code": {
                     "type": "string"
                 },
+                "status_message": {
+                    "type": "string"
+                },
+                "transaction_id": {
+                    "type": "string"
+                },
                 "transaction_status": {
+                    "type": "string"
+                },
+                "transaction_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.midtransNotificationError": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.midtransNotificationResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
                     "type": "string"
                 }
             }

@@ -79,25 +79,42 @@ func (m *midtransClient) createSnap(ctx context.Context, orderID, name, phone st
 }
 
 type midtransNotification struct {
+	MerchantID        string `json:"merchant_id"`
 	OrderID           string `json:"order_id"`
+	TransactionID     string `json:"transaction_id"`
+	TransactionTime   string `json:"transaction_time"`
+	SettlementTime    string `json:"settlement_time"`
+	PaymentType       string `json:"payment_type"`
 	StatusCode        string `json:"status_code"`
+	StatusMessage     string `json:"status_message"`
 	GrossAmount       string `json:"gross_amount"`
+	Currency          string `json:"currency"`
 	SignatureKey      string `json:"signature_key"`
 	TransactionStatus string `json:"transaction_status"`
 	FraudStatus       string `json:"fraud_status"`
 }
 
+type midtransNotificationResponse struct {
+	Message string `json:"message"`
+}
+
+type midtransNotificationError struct {
+	Error string `json:"error"`
+}
+
 // midtransNotificationHandler godoc
 // @Summary      Terima notifikasi pembayaran Midtrans
-// @Description  Webhook untuk pembaruan status transaksi. Signature diverifikasi menggunakan Server Key.
+// @Description  Endpoint webhook publik untuk notifikasi transaksi Midtrans (Snap). Signature diverifikasi dengan SHA-512 dari order_id + status_code + gross_amount + MIDTRANS_SERVER_KEY. Status settlement dan capture dengan fraud_status accept menandai transaksi Lunas; pending tetap Menunggu; deny, cancel, dan expire menandai Gagal serta membatalkan booking yang masih Menunggu. Status transaksi lain diabaikan dan tetap dibalas 200.
 // @Tags         payments
 // @Accept       json
 // @Produce      json
 // @Param        body body midtransNotification true "Payload notifikasi Midtrans"
-// @Success      200 {object} map[string]string
-// @Failure      400 {object} map[string]string "Payload tidak valid"
-// @Failure      401 {object} map[string]string "Signature tidak valid"
-// @Failure      503 {object} map[string]string "Payment gateway belum dikonfigurasi"
+// @Success      200 {object} midtransNotificationResponse "Notifikasi diproses atau status transaksi diabaikan"
+// @Failure      400 {object} midtransNotificationError "Payload JSON tidak valid"
+// @Failure      401 {object} midtransNotificationError "Signature tidak valid"
+// @Failure      405 {object} midtransNotificationError "Metode selain POST tidak diizinkan"
+// @Failure      500 {object} midtransNotificationError "Gagal memperbarui transaksi atau melepas slot booking"
+// @Failure      503 {object} midtransNotificationError "Payment gateway belum dikonfigurasi"
 // @Router       /payments/midtrans/notification [post]
 func midtransNotificationHandler(db *pgxpool.Pool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
