@@ -339,6 +339,10 @@ paths:
     post:
       consumes:
       - application/json
+      description: Mengunci slot sementara selama 15 menit dan membuat sesi pembayaran
+        Midtrans. Booking baru muncul di tiket dan berstatus Dikonfirmasi setelah
+        pembayaran lunas. Jika waktu pembayaran habis, booking dibatalkan dan slot
+        dibuka kembali.
       parameters:
       - description: Data booking
         in: body
@@ -539,6 +543,7 @@ paths:
       - auth
   /my-tickets:
     get:
+      description: Hanya menampilkan booking yang pembayarannya sudah lunas.
       produces:
       - application/json
       responses:
@@ -564,9 +569,9 @@ paths:
       description: Endpoint webhook publik untuk notifikasi transaksi Midtrans (Snap).
         Signature diverifikasi dengan SHA-512 dari order_id + status_code + gross_amount
         + MIDTRANS_SERVER_KEY. Status settlement dan capture dengan fraud_status accept
-        menandai transaksi Lunas; pending tetap Menunggu; deny, cancel, dan expire
-        menandai Gagal serta membatalkan booking yang masih Menunggu. Status transaksi
-        lain diabaikan dan tetap dibalas 200.
+        menandai transaksi Lunas serta booking Dikonfirmasi; pending tetap Menunggu;
+        deny, cancel, dan expire menandai Gagal serta membatalkan booking yang masih
+        Menunggu. Status transaksi lain diabaikan dan tetap dibalas 200.
       parameters:
       - description: Payload notifikasi Midtrans
         in: body

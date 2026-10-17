@@ -38,6 +38,7 @@ func main() {
 	}
 	defer db.Close()
 	log.Println("Koneksi PostgreSQL berhasil")
+	startPaymentExpiryWorker(db)
 
 	mux := http.NewServeMux()
 	sessions := newSessionStore()

@@ -59,7 +59,8 @@ CREATE TABLE IF NOT EXISTS transactions (
     gateway_order_id VARCHAR(100) UNIQUE,
     gateway_token TEXT,
     gateway_redirect_url TEXT,
-    paid_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    expires_at TIMESTAMPTZ,
+    paid_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indeks performa
