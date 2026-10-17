@@ -18,7 +18,7 @@ import (
 // @title           			Barber One API
 // @version         			1.0
 // @description     			API untuk aplikasi Barber One
-// @host            			localhost:8080
+// @host            			localhost:3000
 // @BasePath  					/api
 // @securityDefinitions.apikey  BearerAuth
 // @in                          header
@@ -65,16 +65,31 @@ func main() {
 	mux.HandleFunc("/api/my-tickets", myTicketsHandler(db, sessions))
 	mux.HandleFunc("/api/payments/midtrans/notification", midtransNotificationHandler(db))
 	mux.HandleFunc("/api/availability", getAvailabilityHandler(db))
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			http.NotFound(w, r)
-			return
-		}
-		writeJSON(w, http.StatusOK, map[string]string{"message": "Barber One API aktif"})
-	})
+	mux.HandleFunc("/api/status", apiStatusHandler)
+	mux.HandleFunc("/", apiStatusHandler)
 
 	fmt.Println("Backend berjalan di http://localhost:3000")
 	if err := http.ListenAndServe(":3000", corsMiddleware(mux)); err != nil {
 		fmt.Println("Server gagal:", err)
 	}
+}
+
+// apiStatusHandler godoc
+// @Summary      Status API
+// @Description  Memeriksa bahwa API Barber One aktif.
+// @Tags         system
+// @Produce      json
+// @Success      200 {object} map[string]string
+// @Router       /status [get]
+func apiStatusHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" && r.URL.Path != "/api/status" {
+		http.NotFound(w, r)
+		return
+	}
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", http.MethodGet)
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "Metode tidak diizinkan."})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"message": "Barber One API aktif"})
 }

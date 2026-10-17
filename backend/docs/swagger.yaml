@@ -68,6 +68,21 @@ definitions:
       password:
         type: string
     type: object
+  main.midtransNotification:
+    properties:
+      fraud_status:
+        type: string
+      gross_amount:
+        type: string
+      order_id:
+        type: string
+      signature_key:
+        type: string
+      status_code:
+        type: string
+      transaction_status:
+        type: string
+    type: object
   main.myTicketsResponse:
     properties:
       active:
@@ -198,7 +213,7 @@ definitions:
       ticket_code:
         type: string
     type: object
-host: localhost:8080
+host: localhost:3000
 info:
   contact: {}
   description: API untuk aplikasi Barber One
@@ -518,6 +533,49 @@ paths:
       summary: Tiket aktif, riwayat kunjungan, dan statistik user yang login
       tags:
       - bookings
+  /payments/midtrans/notification:
+    post:
+      consumes:
+      - application/json
+      description: Webhook untuk pembaruan status transaksi. Signature diverifikasi
+        menggunakan Server Key.
+      parameters:
+      - description: Payload notifikasi Midtrans
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/main.midtransNotification'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Payload tidak valid
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Signature tidak valid
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Payment gateway belum dikonfigurasi
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Terima notifikasi pembayaran Midtrans
+      tags:
+      - payments
   /profile:
     get:
       produces:
@@ -594,6 +652,21 @@ paths:
       summary: Daftar layanan aktif
       tags:
       - services
+  /status:
+    get:
+      description: Memeriksa bahwa API Barber One aktif.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Status API
+      tags:
+      - system
 securityDefinitions:
   BearerAuth:
     description: 'Isi dengan: Bearer <token>'
