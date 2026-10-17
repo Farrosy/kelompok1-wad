@@ -13,7 +13,6 @@ import {
   Truck,
   Zap,
   Scissors,
-  CreditCard,
 } from "lucide-react";
 import barbershopHero from "../../assets/images/barbershop-hero.jpg";
 import { API_BASE_URL } from "../../config/api";
@@ -690,16 +689,6 @@ export default function HomeBookingPage() {
                       {total ? formatRupiah(total) : "IDR 0"}
                     </span>
                   </div>
-                  <div className="hb-summary-metode">
-                    <div>
-                      <p className="hb-meta-label">METODE PEMBAYARAN</p>
-                      <div className="hb-pay-options"><span className="hb-pay-opt is-active">Midtrans</span></div>
-                    </div>
-                    <CreditCard size={22} className="hb-pay-icon" />
-                  </div>
-                  <p className="hb-summary-note">
-                    Selesaikan pembayaran melalui Midtrans untuk mengonfirmasi booking. Metode pembayaran tersedia di halaman checkout.
-                  </p>
                 </div>
 
                 <div className="hb-summary-check-row">

@@ -81,7 +81,9 @@ function arrivalLabel(booking) {
 
 export default function TicketsPage() {
   const navigate = useNavigate();
-  const paymentReturned = new URLSearchParams(window.location.search).get("payment") === "return";
+  const paymentParams = new URLSearchParams(window.location.search);
+  const paymentReturned = paymentParams.get("payment") === "return";
+  const returnTicketCode = paymentParams.get("ticket_code");
   const [copied, setCopied] = useState(false);
   const [year, setYear] = useState("SEMUA");
   const [data, setData] = useState(null);
@@ -116,8 +118,10 @@ export default function TicketsPage() {
           return;
         }
         setData(body);
-        const paymentPending = body.active && body.active.payment_status !== "Lunas";
-        if (paymentReturned && paymentPending && attempts < 10) {
+        const returnedTicketPaid = [body.active, ...(body.history || [])].some(
+          (ticket) => ticket?.ticket_code === returnTicketCode && ticket.payment_status === "Lunas",
+        );
+        if (paymentReturned && returnTicketCode && !returnedTicketPaid && attempts < 10) {
           attempts += 1;
           pollTimer = window.setTimeout(loadTickets, 3000);
         }
@@ -141,6 +145,9 @@ export default function TicketsPage() {
   const yearFilters = ["SEMUA", ...Array.from(new Set(allHistory.map((h) => h.booking_date.slice(0, 4))))];
   const history = allHistory.filter((h) => year === "SEMUA" || h.booking_date.startsWith(year));
   const isPaid = t?.payment_status === "Lunas";
+  const paymentTicketPaid = paymentReturned && [t, ...allHistory].some(
+    (ticket) => ticket?.ticket_code === returnTicketCode && ticket.payment_status === "Lunas",
+  );
   const ui = t ? STATUS_UI[t.status] ?? STATUS_UI.Menunggu : null;
 
   function copyCode() {
@@ -214,10 +221,10 @@ export default function TicketsPage() {
 
         {error && <p className="tp-error">{error}</p>}
         {paymentReturned && !loading && (
-          <p className={`tp-payment-return${isPaid ? " is-success" : ""}`} role="status">
-            {isPaid
+          <p className={`tp-payment-return${paymentTicketPaid ? " is-success" : ""}`} role="status">
+            {paymentTicketPaid
               ? "Pembayaran berhasil dikonfirmasi Midtrans. Tiket reservasi Anda sudah diperbarui."
-              : "Checkout selesai. Kami sedang menunggu konfirmasi pembayaran dari Midtrans; status tiket diperbarui otomatis."}
+              : "Booking belum muncul sebagai tiket karena pembayaran belum dikonfirmasi. Status akan diperiksa otomatis; jika masih tertunda, silakan muat ulang halaman beberapa saat lagi."}
           </p>
         )}
 

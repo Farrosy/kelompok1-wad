@@ -1100,54 +1100,6 @@
   line-height: 1;
 }
 
-.hb-summary-metode {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.hb-meta-label {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: #9a8f85;
-  text-transform: uppercase;
-  margin: 0 0 6px;
-}
-
-.hb-pay-options {
-  display: flex;
-  gap: 6px;
-}
-
-.hb-pay-opt {
-  font-size: 10.5px;
-  font-weight: 700;
-  padding: 4px 9px;
-  border-radius: 5px;
-  border: 1.5px solid #e0dbd3;
-  color: #78716c;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.hb-pay-opt.is-active {
-  border-color: #1c1917;
-  color: #1c1917;
-  background: #fff;
-}
-
-.hb-pay-icon {
-  color: #9a8f85;
-}
-
-.hb-summary-note {
-  font-size: 10.5px;
-  color: #9a8f85;
-  line-height: 1.55;
-  margin: 0;
-}
-
 .hb-summary-check-row {
   padding: 10px 18px 14px;
   display: flex;
