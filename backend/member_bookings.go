@@ -14,20 +14,25 @@ import (
 )
 
 type userBooking struct {
-	ID              int64   `json:"id"`
-	TicketCode      string  `json:"ticket_code"`
-	Status          string  `json:"status"`
-	CustomerName    string  `json:"customer_name"`
-	CustomerPhone   string  `json:"customer_phone"`
-	ServiceID       int64   `json:"service_id"`
-	ServiceName     string  `json:"service_name"`
-	Price           float64 `json:"price"`
-	DurationMinutes int     `json:"duration_minutes"`
-	BarberID        int64   `json:"barber_id"`
-	BarberName      string  `json:"barber_name"`
-	BookingDate     string  `json:"booking_date"`
-	BookingTime     string  `json:"booking_time"`
-	Notes           string  `json:"notes"`
+	ID                 int64      `json:"id"`
+	TicketCode         string     `json:"ticket_code"`
+	Status             string     `json:"status"`
+	CustomerName       string     `json:"customer_name"`
+	CustomerPhone      string     `json:"customer_phone"`
+	ServiceID          int64      `json:"service_id"`
+	ServiceName        string     `json:"service_name"`
+	Price              float64    `json:"price"`
+	DurationMinutes    int        `json:"duration_minutes"`
+	BarberID           int64      `json:"barber_id"`
+	BarberName         string     `json:"barber_name"`
+	BookingDate        string     `json:"booking_date"`
+	BookingTime        string     `json:"booking_time"`
+	Notes              string     `json:"notes"`
+	TotalAmount        float64    `json:"total_amount"`
+	PaymentMethod      *string    `json:"payment_method"`
+	PaymentStatus      *string    `json:"payment_status"`
+	PaymentRedirectURL *string    `json:"payment_redirect_url"`
+	PaymentExpiresAt   *time.Time `json:"payment_expires_at"`
 }
 
 type rescheduleBookingRequest struct {
@@ -60,12 +65,16 @@ func listUserBookingsHandler(db *pgxpool.Pool, sessions *sessionStore) http.Hand
 		rows, err := db.Query(r.Context(), `
 			SELECT b.id, b.ticket_code, b.status, b.customer_name, b.customer_phone,
 			       b.service_id, s.name, s.price, s.duration_minutes,
-			       b.barber_id, br.name, b.booking_date, b.booking_time, COALESCE(b.notes, '')
+			       b.barber_id, br.name, b.booking_date, b.booking_time, COALESCE(b.notes, ''),
+			       COALESCE(t.total_amount, s.price), t.payment_method, t.payment_status, t.gateway_redirect_url, t.expires_at
 			FROM bookings b
 		JOIN services s ON s.id = b.service_id
 		JOIN barber br ON br.id = b.barber_id
+		LEFT JOIN LATERAL (
+			SELECT total_amount, payment_method, payment_status, gateway_redirect_url, expires_at
+			FROM transactions WHERE booking_id = b.id ORDER BY id DESC LIMIT 1
+		) t ON TRUE
 		WHERE b.user_id = $1
-		  AND EXISTS (SELECT 1 FROM transactions t WHERE t.booking_id = b.id AND t.payment_status = 'Lunas')
 		ORDER BY b.booking_date DESC, b.booking_time DESC, b.id DESC`, userID)
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal mengambil daftar booking."})
@@ -78,7 +87,8 @@ func listUserBookingsHandler(db *pgxpool.Pool, sessions *sessionStore) http.Hand
 			var bookingDate time.Time
 			if err := rows.Scan(&item.ID, &item.TicketCode, &item.Status, &item.CustomerName, &item.CustomerPhone,
 				&item.ServiceID, &item.ServiceName, &item.Price, &item.DurationMinutes,
-				&item.BarberID, &item.BarberName, &bookingDate, &item.BookingTime, &item.Notes); err != nil {
+				&item.BarberID, &item.BarberName, &bookingDate, &item.BookingTime, &item.Notes,
+				&item.TotalAmount, &item.PaymentMethod, &item.PaymentStatus, &item.PaymentRedirectURL, &item.PaymentExpiresAt); err != nil {
 				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal membaca daftar booking."})
 				return
 			}

@@ -12,22 +12,24 @@ import (
 )
 
 type ticketBooking struct {
-	ID              int64   `json:"id"`
-	TicketCode      string  `json:"ticket_code"`
-	Status          string  `json:"status"`
-	BookingDate     string  `json:"booking_date"`
-	BookingTime     string  `json:"booking_time"`
-	ChairNumber     int     `json:"chair_number"`
-	Notes           string  `json:"notes"`
-	ServiceName     string  `json:"service_name"`
-	ServiceDesc     *string `json:"service_description"`
-	DurationMinutes int     `json:"duration_minutes"`
-	Price           float64 `json:"price"`
-	TotalAmount     float64 `json:"total_amount"`
-	BarberName      string  `json:"barber_name"`
-	BarberRating    float64 `json:"barber_rating"`
-	PaymentMethod   *string `json:"payment_method"`
-	PaymentStatus   *string `json:"payment_status"`
+	ID                 int64      `json:"id"`
+	TicketCode         string     `json:"ticket_code"`
+	Status             string     `json:"status"`
+	BookingDate        string     `json:"booking_date"`
+	BookingTime        string     `json:"booking_time"`
+	ChairNumber        int        `json:"chair_number"`
+	Notes              string     `json:"notes"`
+	ServiceName        string     `json:"service_name"`
+	ServiceDesc        *string    `json:"service_description"`
+	DurationMinutes    int        `json:"duration_minutes"`
+	Price              float64    `json:"price"`
+	TotalAmount        float64    `json:"total_amount"`
+	BarberName         string     `json:"barber_name"`
+	BarberRating       float64    `json:"barber_rating"`
+	PaymentMethod      *string    `json:"payment_method"`
+	PaymentStatus      *string    `json:"payment_status"`
+	PaymentRedirectURL *string    `json:"payment_redirect_url"`
+	PaymentExpiresAt   *time.Time `json:"payment_expires_at"`
 }
 
 type ticketStats struct {
@@ -44,7 +46,7 @@ type myTicketsResponse struct {
 
 // myTicketsHandler godoc
 // @Summary      Tiket aktif, riwayat kunjungan, dan statistik user yang login
-// @Description  Hanya menampilkan booking yang pembayarannya sudah lunas.
+// @Description  Menampilkan booking aktif milik pengguna, termasuk status transaksi pembayaran.
 // @Tags         bookings
 // @Produce      json
 // @Security     BearerAuth
@@ -81,15 +83,16 @@ func myTicketsHandler(db *pgxpool.Pool, sessions *sessionStore) http.HandlerFunc
 		rows, err := db.Query(r.Context(),
 			`SELECT b.id, b.ticket_code, b.status, b.booking_date, b.booking_time, b.chair_number,
 			        COALESCE(b.notes, ''), s.name, s.description, s.duration_minutes, s.price,
-			        COALESCE(t.total_amount, s.price), br.name, br.rating, t.payment_method, t.payment_status
+			        COALESCE(t.total_amount, s.price), br.name, br.rating, t.payment_method, t.payment_status,
+			        t.gateway_redirect_url, t.expires_at
 			 FROM bookings b
 			 JOIN services s ON s.id = b.service_id
 			 JOIN barber br ON br.id = b.barber_id
 			 LEFT JOIN LATERAL (
-			     SELECT total_amount, payment_method, payment_status
-			     FROM transactions WHERE booking_id = b.id ORDER BY paid_at DESC LIMIT 1
+			     SELECT total_amount, payment_method, payment_status, gateway_redirect_url, expires_at
+			     FROM transactions WHERE booking_id = b.id ORDER BY id DESC LIMIT 1
 			 ) t ON TRUE
-			 WHERE b.user_id = $1 AND t.payment_status = 'Lunas'
+			 WHERE b.user_id = $1
 			 ORDER BY b.booking_date ASC, b.booking_time ASC`, userID,
 		)
 		if err != nil {
@@ -110,12 +113,20 @@ func myTicketsHandler(db *pgxpool.Pool, sessions *sessionStore) http.HandlerFunc
 			var date time.Time
 			if err := rows.Scan(&item.ID, &item.TicketCode, &item.Status, &date, &item.BookingTime, &item.ChairNumber,
 				&item.Notes, &item.ServiceName, &item.ServiceDesc, &item.DurationMinutes, &item.Price,
-				&item.TotalAmount, &item.BarberName, &item.BarberRating, &item.PaymentMethod, &item.PaymentStatus); err != nil {
+				&item.TotalAmount, &item.BarberName, &item.BarberRating, &item.PaymentMethod, &item.PaymentStatus,
+				&item.PaymentRedirectURL, &item.PaymentExpiresAt); err != nil {
 				log.Printf("my-tickets row scan failed for user %d: %v", userID, err)
 				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal membaca data tiket."})
 				return
 			}
 			item.BookingDate = date.Format("2006-01-02")
+
+			// Status transaksi menjadi acuan utama untuk memisahkan pembayaran gagal
+			// dari tiket aktif, termasuk jika status booking belum ikut tersinkron.
+			if item.PaymentStatus != nil && *item.PaymentStatus == "Gagal" {
+				resp.History = append(resp.History, item)
+				continue
+			}
 
 			switch item.Status {
 			case "Selesai":
@@ -128,6 +139,8 @@ func myTicketsHandler(db *pgxpool.Pool, sessions *sessionStore) http.HandlerFunc
 					copied := item
 					resp.Active = &copied
 				}
+			case "Batal":
+				// Booking batal selain kegagalan pembayaran tidak menjadi tiket aktif.
 			}
 		}
 		if err := rows.Err(); err != nil {

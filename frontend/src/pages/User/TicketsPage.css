@@ -61,6 +61,40 @@
   border-radius: 0 0 12px 12px; padding: 16px; gap: 16px;
   box-shadow: 0 8px 30px rgba(28, 25, 23, 0.05);
 }
+.tp-summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(28, 25, 23, 0.05);
+}
+.tp-summary-main h2 { margin: 0 0 12px; font: 700 23px 'Playfair Display', Georgia, serif; }
+.tp-summary-main p { display: flex; align-items: center; gap: 8px; margin: 7px 0 0; color: #57534e; font-size: 12px; }
+.tp-summary-main p svg { color: var(--gold-soft); }
+.tp-schedule-highlight {
+  display: flex; align-items: center; gap: 12px; width: fit-content; max-width: 100%;
+  margin: 0 0 12px; padding: 13px 16px; border: 1px solid #dfc58f; border-radius: 10px;
+  background: linear-gradient(110deg, #fff9e9, #fff 78%); color: var(--ink);
+  box-shadow: 0 4px 14px rgba(154, 100, 16, 0.08);
+}
+.tp-schedule-highlight > svg { color: #a87925; flex: 0 0 auto; }
+.tp-schedule-copy { display: flex; flex-direction: column; gap: 3px; }
+.tp-schedule-label { color: #8a641f; font-size: 9px; font-weight: 800; letter-spacing: .12em; }
+.tp-schedule-copy strong { font-size: 14px; line-height: 1.35; }
+.tp-schedule-time {
+  margin-left: 8px; padding: 5px 10px; border-radius: 7px; background: #2c2924; color: #fff;
+  font: 700 19px 'Playfair Display', Georgia, serif; white-space: nowrap;
+}
+.tp-schedule-time small { color: #e7d5ad; font-family: inherit; font-size: 10px; font-weight: 700; }
+.tp-summary-status { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex: 0 0 auto; }
+.tp-summary-badge { padding: 6px 10px; border: 1px solid #f3dfb5; border-radius: 999px; background: #fff6e5; color: #9a6410; font-size: 9px; font-weight: 700; letter-spacing: .06em; }
+.tp-summary-badge.is-paid { border-color: #c9ecd6; background: #eaf8ef; color: #237a47; }
+.tp-summary-total { color: var(--ink); font: 700 17px 'Playfair Display', Georgia, serif; }
 .tp-ticket-main {
   background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 22px;
   display: flex; flex-direction: column; gap: 20px;
@@ -77,6 +111,7 @@
   padding: 5px 12px; border-radius: 999px;
 }
 .tp-pill-green { background: #eaf8ef; color: #237a47; border: 1px solid #c9ecd6; }
+.tp-pill-red { background: #fff0ef; color: #a3362b; border: 1px solid #f1cbc7; }
 .tp-pill-amber { background: #fff6e5; color: #9a6410; border: 1px solid #f3dfb5; }
 .tp-dot-amber { background: #e0a020; }
 .tp-muted-icon { color: #c4bfb4; }
@@ -234,3 +269,37 @@
   .tp-history-actions { grid-column: 1 / -1; flex-wrap: wrap; }
   .tp-actions-end { margin-left: 0; }
 }
+
+@media (max-width: 640px) {
+  .tp-summary-card { align-items: flex-start; flex-direction: column; gap: 18px; }
+  .tp-summary-status { align-items: flex-start; width: 100%; }
+}
+
+/* Booking detail */
+.tp-detail-page { gap: 18px; }
+.tp-detail-back { display: inline-flex; align-items: center; gap: 7px; width: fit-content; color: var(--gold); font-size: 12px; font-weight: 600; text-decoration: none; }
+.tp-detail-back:hover { color: #623f16; }
+.tp-detail-page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; flex-wrap: wrap; }
+.tp-detail-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.tp-detail-badge { padding: 6px 10px; border: 1px solid #f3dfb5; border-radius: 999px; background: #fff6e5; color: #9a6410; font-size: 10px; font-weight: 700; }
+.tp-detail-badge.is-success { border-color: #c9ecd6; background: #eaf8ef; color: #237a47; }
+.tp-detail-notice { display: flex; align-items: center; gap: 9px; padding: 12px 14px; border: 1px solid #ead6a8; border-radius: 8px; background: #fff7e6; color: #805b16; font-size: 12px; }
+.tp-detail-notice.is-success { border-color: #b8dec2; background: #eef8f0; color: #247342; }
+.tp-detail-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(260px, .8fr); align-items: start; gap: 16px; }
+.tp-detail-panel { padding: 22px; border: 1px solid var(--line); border-radius: 11px; background: #fff; box-shadow: 0 5px 20px rgba(28,25,23,.035); }
+.tp-detail-panel h2 { margin: 0 0 8px; font: 600 20px 'Playfair Display', Georgia, serif; }
+.tp-detail-row { display: flex; gap: 11px; padding: 14px 0; border-bottom: 1px solid #f1efea; color: var(--gold-soft); }
+.tp-detail-row > div { display: flex; flex-direction: column; gap: 4px; color: var(--ink); }
+.tp-detail-row small, .tp-detail-ticket-code small, .tp-detail-notes small { color: var(--muted); font-size: 10px; }
+.tp-detail-row strong, .tp-detail-ticket-code strong { font-size: 13px; }
+.tp-detail-row span { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; }
+.tp-detail-notes { padding: 14px 0; border-bottom: 1px solid #f1efea; }
+.tp-detail-notes p { margin: 6px 0 0; color: #57534e; font-size: 12px; white-space: pre-wrap; }
+.tp-detail-ticket-code { display: flex; align-items: center; gap: 9px; margin-top: 14px; padding: 12px; border-radius: 8px; background: var(--bg-soft); color: var(--gold-soft); }
+.tp-detail-ticket-code div { display: flex; flex-direction: column; gap: 4px; }
+.tp-detail-amount { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 0; border-bottom: 1px solid #f1efea; color: var(--muted); font-size: 12px; }
+.tp-detail-amount strong { color: var(--ink); font: 700 19px 'Playfair Display', Georgia, serif; }
+.tp-detail-payment-method, .tp-detail-expiry { display: flex; align-items: center; gap: 7px; color: #57534e; font-size: 12px; line-height: 1.5; }
+.tp-detail-pay { width: 100%; margin-top: 10px; }
+.tp-detail-paid { display: flex; align-items: center; gap: 7px; color: #247342; font-size: 12px; }
+@media (max-width: 720px) { .tp-detail-layout { grid-template-columns: 1fr; } }

@@ -2,41 +2,25 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Ticket,
-  Hash,
   CalendarDays,
   Scissors,
   MapPin,
   Clock,
-  Wallet,
-  Copy,
-  Check,
   CalendarPlus,
-  CalendarClock,
   XCircle,
-  ShieldCheck,
-  CheckCircle2,
-  Armchair,
   Info,
   Car,
   Phone,
   ArrowUpRight,
   Download,
   RotateCcw,
+  CalendarClock,
 } from "lucide-react";
 import { API_BASE_URL } from "../../config/api";
 import "./TicketsPage.css";
 
 const BRANCH = "Senopati";
-const BARBER_COLORS = { "Master Bayo": "#c8a86b", "Ilham Arya": "#7b9e87", "Dino Saleh": "#8a7db5" };
 const MONTHS_SHORT = ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGU", "SEP", "OKT", "NOV", "DES"];
-const MONTHS_LONG = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-const DAYS_LONG = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-
-const STATUS_UI = {
-  Menunggu: { pill: "MENUNGGU KONFIRMASI", tone: "amber", queue: "Menunggu Konfirmasi" },
-  Dikonfirmasi: { pill: "TERKONFIRMASI & SIAP DATANG", tone: "green", queue: "On-Time (Tepat Waktu)" },
-  "Sedang Dilayani": { pill: "SEDANG DILAYANI", tone: "green", queue: "Sedang Dilayani" },
-};
 
 function getToken() {
   return localStorage.getItem("barber-one-token") || sessionStorage.getItem("barber-one-token");
@@ -56,41 +40,15 @@ function parseDate(str) {
   return new Date(y, m - 1, d);
 }
 
-function initialsOf(name) {
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
-function addMinutes(time, minutes) {
-  const [h, m] = time.split(":").map(Number);
-  const total = h * 60 + m + minutes;
-  return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
-}
-
-function arrivalLabel(booking) {
-  const date = parseDate(booking.booking_date);
-  const now = new Date();
-  const isToday = date.toDateString() === now.toDateString();
-  const base = `${DAYS_LONG[date.getDay()]} ${date.getDate()} ${MONTHS_LONG[date.getMonth()]} ${date.getFullYear()}`;
-  return `${isToday ? "Hari Ini, " : ""}${base} • ${booking.booking_time} WIB`;
-}
-
 export default function TicketsPage() {
   const navigate = useNavigate();
   const paymentParams = new URLSearchParams(window.location.search);
   const paymentReturned = paymentParams.get("payment") === "return";
   const returnTicketCode = paymentParams.get("ticket_code");
-  const [copied, setCopied] = useState(false);
   const [year, setYear] = useState("SEMUA");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [cancelling, setCancelling] = useState(false);
-  const [cancelledCode, setCancelledCode] = useState("");
 
   useEffect(() => {
     const token = getToken();
@@ -139,45 +97,24 @@ export default function TicketsPage() {
     };
   }, [navigate, paymentReturned]);
 
-  const t = data?.active ?? null;
+  const activeTicket = data?.active ?? null;
+  const t = activeTicket?.payment_status === "Gagal" ? null : activeTicket;
   const stats = data?.stats ?? { visits: 0, favorite_barber: "" };
   const allHistory = data?.history ?? [];
   const yearFilters = ["SEMUA", ...Array.from(new Set(allHistory.map((h) => h.booking_date.slice(0, 4))))];
   const history = allHistory.filter((h) => year === "SEMUA" || h.booking_date.startsWith(year));
   const isPaid = t?.payment_status === "Lunas";
-  const paymentTicketPaid = paymentReturned && [t, ...allHistory].some(
-    (ticket) => ticket?.ticket_code === returnTicketCode && ticket.payment_status === "Lunas",
-  );
-  const ui = t ? STATUS_UI[t.status] ?? STATUS_UI.Menunggu : null;
 
-  function copyCode() {
-    navigator.clipboard?.writeText(t.ticket_code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  async function cancelBooking() {
-    if (!t || !window.confirm("Batalkan janji ini?")) return;
-    setCancelling(true);
-    setError("");
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/bookings/${t.id}/cancel`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${getToken() || ""}` },
-      });
-      const body = await response.json();
-      if (!response.ok) {
-        setError(body.error || "Gagal membatalkan booking.");
-        return;
-      }
-      setCancelledCode(t.ticket_code);
-      setData((prev) => ({ ...prev, active: null }));
-    } catch {
-      setError("Tidak dapat terhubung ke server.");
-    } finally {
-      setCancelling(false);
+  useEffect(() => {
+    if (paymentReturned && t?.ticket_code === returnTicketCode) {
+      navigate(`/dashboard/tickets/detail/${t.id}?payment=return`, { replace: true });
     }
-  }
+  }, [navigate, paymentReturned, returnTicketCode, t]);
+  useEffect(() => {
+    if (paymentReturned && t?.ticket_code === returnTicketCode) {
+      navigate(`/dashboard/tickets/detail/${t.id}?payment=return`, { replace: true });
+    }
+  }, [navigate, paymentReturned, returnTicketCode, t]);
 
   if (loading) {
     return (
@@ -220,23 +157,13 @@ export default function TicketsPage() {
         </header>
 
         {error && <p className="tp-error">{error}</p>}
-        {paymentReturned && !loading && (
-          <p className={`tp-payment-return${paymentTicketPaid ? " is-success" : ""}`} role="status">
-            {paymentTicketPaid
-              ? "Pembayaran berhasil dikonfirmasi Midtrans. Tiket reservasi Anda sudah diperbarui."
-              : "Booking belum muncul sebagai tiket karena pembayaran belum dikonfirmasi. Status akan diperiksa otomatis; jika masih tertunda, silakan muat ulang halaman beberapa saat lagi."}
-          </p>
-        )}
-
         {/* ── Active ticket ── */}
         {!t ? (
           <section className="tp-empty">
             <XCircle size={36} />
-            <h2>{cancelledCode ? "Janji Dibatalkan" : "Belum Ada Tiket Aktif"}</h2>
+            <h2>Belum Ada Tiket Aktif</h2>
             <p>
-              {cancelledCode
-                ? `Reservasi ${cancelledCode} telah dibatalkan. Anda dapat membuat reservasi baru kapan saja.`
-                : "Anda belum memiliki reservasi mendatang. Buat reservasi baru kapan saja."}
+              Anda belum memiliki reservasi mendatang. Buat reservasi baru kapan saja.
             </p>
             <Link to="/dashboard" className="tp-btn tp-btn-primary">
               <CalendarPlus size={14} /> Buat Reservasi Baru
@@ -246,123 +173,29 @@ export default function TicketsPage() {
           <section className="tp-ticket-wrap">
             <div className="tp-ticket-tabs">
               <span className="tp-tab-left">
-                <Ticket size={14} /> TIKET RESERVASI TERKONFIRMASI
+                <Ticket size={14} /> {isPaid ? "TIKET RESERVASI TERKONFIRMASI" : "RESERVASI ANDA"}
               </span>
               <span className="tp-tab-right">VERIFIKASI &amp; CHECK-IN BARBERSHOP</span>
             </div>
 
-            <div className="tp-ticket">
-              <div className="tp-ticket-main">
-                <div className="tp-ticket-top">
-                  <div className="tp-brand">
-                    <span className="tp-brand-name">
-                      BARBER
-                      <br />
-                      ONE
-                    </span>
-                    <span className="tp-brand-branch">{BRANCH} Atelier</span>
-                    <span className="tp-brand-code">#{t.ticket_code}</span>
+            <div className="tp-summary-card">
+              <div className="tp-summary-main">
+                <h2>{t.service_name}</h2>
+                <div className="tp-schedule-highlight">
+                  <CalendarClock size={22} />
+                  <div className="tp-schedule-copy">
+                    <span className="tp-schedule-label">JADWAL RESERVASI</span>
+                    <strong>{new Date(`${t.booking_date}T00:00:00`).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</strong>
                   </div>
-                  <span className={`tp-pill tp-pill-${ui.tone}`}>
-                    <span className={`tp-dot${ui.tone === "amber" ? " tp-dot-amber" : ""}`} /> {ui.pill}
-                  </span>
+                  <span className="tp-schedule-time">{t.booking_time}<small> WIB</small></span>
                 </div>
-
-                <div className="tp-ticket-body">
-                  <div className="tp-service">
-                    <p className="tp-label">LAYANAN TERPILIH</p>
-                    <h2 className="tp-service-name">{t.service_name}</h2>
-                    <p className="tp-service-desc">{t.notes || t.service_description}</p>
-                    <div className="tp-meta">
-                      <span>
-                        <Clock size={14} /> {t.duration_minutes} Menit
-                      </span>
-                      <span>
-                        <Wallet size={14} /> {formatRupiah(t.total_amount)}
-                      </span>
-                      <span className="tp-meta-gold">
-                        {isPaid ? `LUNAS VIA ${(t.payment_method || "").toUpperCase()}` : "BAYAR DI KASIR"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="tp-barber-card">
-                    <p className="tp-label">BARBER &amp; KURSI</p>
-                    <div className="tp-barber-row">
-                      <div className="tp-avatar" style={{ background: BARBER_COLORS[t.barber_name] || "#c8a86b" }}>
-                        {initialsOf(t.barber_name)}
-                      </div>
-                      <div>
-                        <strong>{t.barber_name}</strong>
-                        <p className="tp-gold-text">★ {Number(t.barber_rating).toFixed(1)}</p>
-                      </div>
-                    </div>
-                    <p className="tp-chair">
-                      <Armchair size={14} /> Kursi #{String(t.chair_number).padStart(2, "0")} (Atelier {BRANCH})
-                    </p>
-                  </div>
-                </div>
-
-                <div className="tp-schedule">
-                  <div>
-                    <p className="tp-label">JADWAL KEDATANGAN</p>
-                    <strong className="tp-schedule-main">{arrivalLabel(t)}</strong>
-                    <p className="tp-muted">
-                      Estimasi selesai pukul {addMinutes(t.booking_time, t.duration_minutes)} WIB
-                    </p>
-                  </div>
-                  <div>
-                    <p className="tp-label">STATUS ANTREAN KURSI</p>
-                    <strong className="tp-schedule-status">
-                      <span className="tp-dot tp-dot-grey" /> {ui.queue}
-                    </strong>
-                    <p className="tp-muted">Disarankan tiba 5–10 menit sebelum slot</p>
-                  </div>
-                </div>
-
-                <div className="tp-actions">
-                  <Link to="/dashboard" className="tp-btn tp-btn-outline">
-                    <CalendarClock size={14} /> Jadwalkan Ulang (Reschedule)
-                  </Link>
-                  <button
-                    type="button"
-                    className="tp-btn tp-btn-ghost"
-                    onClick={cancelBooking}
-                    disabled={cancelling || t.status === "Sedang Dilayani"}
-                  >
-                    <XCircle size={14} /> {cancelling ? "Membatalkan..." : "Batal Janji"}
-                  </button>
-                  <button type="button" className="tp-btn tp-btn-primary tp-actions-end">
-                    <CalendarPlus size={14} /> Simpan ke Kalender
-                  </button>
-                </div>
+                <p><Scissors size={15} /> {t.barber_name} · {BRANCH}</p>
               </div>
-
-              <aside className="tp-ticket-side">
-                <div className="tp-code-card">
-                  <p className="tp-code-label">
-                    <Hash size={13} /> KODE TIKET RESERVASI
-                  </p>
-                  <div className="tp-code">{t.ticket_code}</div>
-                  <button type="button" className="tp-copy" onClick={copyCode}>
-                    {copied ? <Check size={13} /> : <Copy size={13} />}
-                    {copied ? "TERSALIN" : "SALIN KODE"}
-                  </button>
-                  <p className="tp-muted tp-center">
-                    Tunjukkan kode tiket ini ke staf kasir / resepsionis saat tiba di barbershop
-                  </p>
-                </div>
-
-                <div className="tp-pay-status">
-                  <span>
-                    <ShieldCheck size={15} /> STATUS PEMBAYARAN
-                    <small>
-                      {isPaid ? `Sudah Lunas via ${t.payment_method}` : "Menunggu pembayaran gateway"}
-                    </small>
-                  </span>
-                  <CheckCircle2 size={18} className={isPaid ? "tp-green" : "tp-muted-icon"} />
-                </div>
-              </aside>
+              <div className="tp-summary-status">
+                <span className={`tp-summary-badge${isPaid ? " is-paid" : ""}`}>{isPaid ? "LUNAS" : t.payment_status === "Gagal" ? "PEMBAYARAN GAGAL" : "MENUNGGU PEMBAYARAN"}</span>
+                <span className="tp-summary-total">{formatRupiah(t.total_amount)}</span>
+                <Link to={`/dashboard/tickets/detail/${t.id}`} className="tp-btn tp-btn-primary">Lihat Detail <ArrowUpRight size={14} /></Link>
+              </div>
             </div>
           </section>
         )}
@@ -480,9 +313,13 @@ export default function TicketsPage() {
                 <div className="tp-history-info">
                   <div className="tp-history-title">
                     <h3>{h.service_name}</h3>
-                    <span className="tp-pill tp-pill-green tp-pill-sm">
-                      SELESAI{h.payment_status === "Lunas" ? " • LUNAS" : ""}
-                    </span>
+                    {h.payment_status === "Gagal" ? (
+                      <span className="tp-pill tp-pill-red tp-pill-sm">PEMBAYARAN GAGAL</span>
+                    ) : (
+                      <span className="tp-pill tp-pill-green tp-pill-sm">
+                        SELESAI{h.payment_status === "Lunas" ? " • LUNAS" : ""}
+                      </span>
+                    )}
                   </div>
                   <p className="tp-muted">
                     {h.barber_name} • Kursi #{String(h.chair_number).padStart(2, "0")} (Atelier {BRANCH})

@@ -13,6 +13,7 @@ import {
   Truck,
   Zap,
   Scissors,
+  X,
 } from "lucide-react";
 import barbershopHero from "../../assets/images/barbershop-hero.jpg";
 import { API_BASE_URL } from "../../config/api";
@@ -405,9 +406,11 @@ export default function HomeBookingPage() {
           </div>
 
           {bookingDone ? (
-            <div className="hb-booking-success">
+            <div className="hb-success-modal-backdrop">
+            <div className="hb-booking-success" role="dialog" aria-modal="true" aria-labelledby="hb-success-title">
+              <button className="hb-success-close" type="button" aria-label="Tutup" onClick={() => setBookingDone(false)}><X size={20} /></button>
               <CheckCircle size={52} className="hb-success-icon" />
-              <h3>Booking berhasil dibuat!</h3>
+              <h3 id="hb-success-title">Booking berhasil dibuat!</h3>
               <p>
                 Terima kasih <strong>{customerName}</strong>. Booking Anda
                 untuk layanan <strong>{selectedServiceObjs.map((s) => s.name).join(", ")}</strong> pada{" "}
@@ -434,6 +437,7 @@ export default function HomeBookingPage() {
               >
                 Buat Reservasi Baru
               </button>
+            </div>
             </div>
           ) : (
             <div className="hb-booking-layout">
