@@ -195,7 +195,7 @@ func createBookingHandler(db *pgxpool.Pool, sessions *sessionStore) http.Handler
 			return
 		}
 		gatewayOrderID := booking.TicketCode + "-" + strconv.FormatInt(time.Now().Unix(), 10)
-		finishURL := strings.TrimRight(getEnv("FRONTEND_ORIGIN", "http://localhost:5173"), "/") + "/dashboard/tickets?payment=return&ticket_code=" + booking.TicketCode
+		finishURL := strings.TrimRight(getEnv("FRONTEND_ORIGIN", "http://localhost:5173"), "/") + "/dashboard/tickets/detail/" + strconv.FormatInt(booking.ID, 10) + "?payment=return"
 		paymentStartedAt := time.Now()
 		paymentExpiresAt := paymentStartedAt.Add(15 * time.Minute)
 		snap, err := midtrans.createSnap(r.Context(), gatewayOrderID, input.CustomerName, input.CustomerPhone, servicePrice, serviceName, finishURL, paymentStartedAt)

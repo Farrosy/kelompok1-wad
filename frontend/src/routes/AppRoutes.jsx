@@ -6,6 +6,7 @@ import HomeBookingPage from "../pages/User/HomeBookingPage";
 import LoginPage from "..//pages/Auth/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import TicketsPage from "../pages/User/TicketsPage";
+import TicketDetailPage from "../pages/User/TicketDetailPage";
 
 export default function AppRoutes() {
   return (
@@ -16,6 +17,7 @@ export default function AppRoutes() {
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route index element={<HomeBookingPage />} />
         <Route path="tickets" element={<TicketsPage />} />
+        <Route path="tickets/detail/:id" element={<TicketDetailPage />} />
         <Route path="profile" element={<Navigate to="/dashboard/tickets" replace />} />
       </Route>
       <Route path="/kasir" element={<DashboardLayout />}>

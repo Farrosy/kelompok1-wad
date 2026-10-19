@@ -62,7 +62,7 @@ func main() {
 			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "Metode tidak diizinkan."})
 		}
 	})
-	mux.HandleFunc("/api/bookings/", patchUserBookingHandler(db, sessions))
+	mux.HandleFunc("/api/bookings/", bookingResourceHandler(db, sessions))
 	mux.HandleFunc("/api/my-tickets", myTicketsHandler(db, sessions))
 	mux.HandleFunc("/api/payments/midtrans/notification", midtransNotificationHandler(db))
 	mux.HandleFunc("/api/availability", getAvailabilityHandler(db))
