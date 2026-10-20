@@ -39,6 +39,7 @@ func main() {
 	defer db.Close()
 	log.Println("Koneksi PostgreSQL berhasil")
 	startPaymentExpiryWorker(db)
+	startBookingAutoStartWorker(db)
 
 	mux := http.NewServeMux()
 	sessions := newSessionStore()
@@ -66,6 +67,10 @@ func main() {
 	mux.HandleFunc("/api/my-tickets", myTicketsHandler(db, sessions))
 	mux.HandleFunc("/api/payments/midtrans/notification", midtransNotificationHandler(db))
 	mux.HandleFunc("/api/availability", getAvailabilityHandler(db))
+	mux.HandleFunc("/api/cashier/queue", cashierQueueHandler(db, sessions))
+	mux.HandleFunc("/api/cashier/summary", cashierSummaryHandler(db, sessions))
+	mux.HandleFunc("/api/cashier/walk-in", cashierWalkInHandler(db, sessions))
+	mux.HandleFunc("/api/cashier/bookings/", cashierBookingHandler(db, sessions))
 	mux.HandleFunc("/api/status", apiStatusHandler)
 	mux.HandleFunc("/", apiStatusHandler)
 

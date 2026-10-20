@@ -12,6 +12,15 @@ function formatRupiah(value) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value || 0);
 }
 
+function bookingStatusLabel(status, paid, pending, chairNumber) {
+  const chair = chairNumber > 0 ? ` · Kursi ${chairNumber}` : "";
+  if (status === "Sedang Dilayani") return `Sedang Dilayani${chair}`;
+  if (status === "Dikonfirmasi" || (status === "Menunggu" && paid)) return `Menunggu Kedatangan${chair}`;
+  if (status === "Menunggu" && pending) return "Menunggu Pembayaran";
+  if (status === "Batal") return "Dibatalkan";
+  return status;
+}
+
 export default function TicketDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -96,7 +105,7 @@ export default function TicketDetailPage() {
         <Link to="/dashboard/tickets" className="tp-detail-back"><ArrowLeft size={15} /> Kembali ke Tiket &amp; Profil Saya</Link>
         <header className="tp-detail-page-header">
           <div><p className="tp-crumb"><Link to="/dashboard/tickets">TIKET &amp; PROFIL SAYA</Link> / <span>DETAIL RESERVASI</span></p><h1 className="tp-title">Detail Reservasi</h1></div>
-          <div className="tp-detail-badges"><span className={`tp-detail-badge${booking.status === "Dikonfirmasi" ? " is-success" : ""}`}>{booking.status === "Dikonfirmasi" ? "Terkonfirmasi" : booking.status}</span><span className={`tp-detail-badge${paid ? " is-success" : ""}`}>{paid ? "Lunas" : booking.payment_status || "Belum dibayar"}</span></div>
+          <div className="tp-detail-badges"><span className={`tp-detail-badge${paid && booking.status !== "Batal" ? " is-success" : ""}`}>{bookingStatusLabel(booking.status, paid, pending, booking.chair_number)}</span></div>
         </header>
 
         {paymentReturned && <div className={`tp-detail-notice${paid ? " is-success" : ""}`} role="status">{paid ? <CircleCheck size={18} /> : <CircleAlert size={18} />}{returnedMessage}</div>}
@@ -113,7 +122,7 @@ export default function TicketDetailPage() {
             <div className="tp-detail-ticket-code"><Ticket size={16} /><div><small>Kode tiket reservasi</small><strong>{booking.ticket_code}</strong></div></div>
           </section>
 
-          <aside className="tp-detail-panel">
+          <aside className={`tp-detail-panel${paid ? " is-paid" : ""}`}>
             <h2>Status Pembayaran</h2>
             <div className="tp-detail-amount"><span>Total</span><strong>{formatRupiah(booking.total_amount || booking.price)}</strong></div>
             <p className="tp-detail-payment-method"><CreditCard size={16} /> {paid ? `Dibayar via ${booking.payment_method || "Midtrans"}` : "Pembayaran melalui Midtrans"}</p>

@@ -1,4 +1,14 @@
-export default function MetricCards() {
+function formatRupiah(value) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value || 0);
+}
+
+export default function MetricCards({ summary, usedChairs, totalChairs }) {
+  const waiting = summary?.waiting ?? 0;
+  const inService = summary?.in_service ?? 0;
+  const done = summary?.done ?? 0;
+  const chairs = Array.from({ length: totalChairs }, (_, i) => i + 1);
+  const freeChairs = chairs.filter((chair) => !usedChairs[chair]);
+
   return (
     <div className="cashier-metrics-grid">
       <div className="metric-card">
@@ -11,7 +21,7 @@ export default function MetricCards() {
           </div>
         </div>
         <div className="metric-value-row">
-          <span className="metric-number">4</span>
+          <span className="metric-number">{waiting}</span>
           <span className="metric-label">Pelanggan</span>
         </div>
         <div className="metric-footer-note">
@@ -19,7 +29,7 @@ export default function MetricCards() {
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
-          <span>Estimasi tunggu ~20 mnt</span>
+          <span>Sudah lunas, belum masuk kursi</span>
         </div>
       </div>
 
@@ -35,16 +45,17 @@ export default function MetricCards() {
           </div>
         </div>
         <div className="metric-value-row">
-          <span className="metric-number">3</span>
-          <span className="metric-slash">/ 4</span>
+          <span className="metric-number">{inService}</span>
+          <span className="metric-slash">/ {totalChairs}</span>
           <span className="metric-label">Kursi Terisi</span>
         </div>
         <div className="chair-indicator-row">
-          <span className="chair-dot filled" />
-          <span className="chair-dot filled" />
-          <span className="chair-dot empty" />
-          <span className="chair-dot filled" />
-          <span className="chair-note">Kursi 3 Tersedia</span>
+          {chairs.map((chair) => (
+            <span key={chair} className={`chair-dot ${usedChairs[chair] ? "filled" : "empty"}`} />
+          ))}
+          <span className="chair-note">
+            {freeChairs.length === 0 ? "Semua kursi terisi" : `Kursi ${freeChairs.join(", ")} Tersedia`}
+          </span>
         </div>
       </div>
 
@@ -58,13 +69,8 @@ export default function MetricCards() {
           </div>
         </div>
         <div className="metric-value-row">
-          <span className="metric-number">18</span>
+          <span className="metric-number">{done}</span>
           <span className="metric-label">Sesi Selesai</span>
-        </div>
-        <div className="metric-trend-row">
-          <span className="trend-arrow">↑</span>
-          <strong>+12%</strong>
-          <span>vs hari kemarin</span>
         </div>
       </div>
 
@@ -80,11 +86,10 @@ export default function MetricCards() {
           </div>
         </div>
         <div className="metric-value-row">
-          <span className="metric-currency-text">Rp 2.450.000</span>
+          <span className="metric-currency-text">{formatRupiah(summary?.revenue)}</span>
         </div>
         <div className="metric-omzet-footer">
-          <span>14 Tunai • 4 QRIS/Debit</span>
-          <a href="#kas" className="open-cash-link">Buka Kas →</a>
+          <span>{summary?.cash_count ?? 0} Tunai • {summary?.non_cash_count ?? 0} Non-tunai</span>
         </div>
       </div>
     </div>

@@ -76,7 +76,7 @@ func queryUserBooking(r *http.Request, db *pgxpool.Pool, bookingID, userID int64
 	err := db.QueryRow(r.Context(), `
 		SELECT b.id, b.ticket_code, b.status, b.customer_name, b.customer_phone,
 		       b.service_id, s.name, s.price, s.duration_minutes,
-		       b.barber_id, br.name, b.booking_date, b.booking_time, COALESCE(b.notes, ''),
+		       b.barber_id, br.name, b.booking_date, b.booking_time, b.chair_number, COALESCE(b.notes, ''),
 	       COALESCE(t.total_amount, s.price), t.payment_method, t.payment_status, t.gateway_redirect_url, t.expires_at
 		FROM bookings b
 		JOIN services s ON s.id = b.service_id
@@ -88,7 +88,7 @@ func queryUserBooking(r *http.Request, db *pgxpool.Pool, bookingID, userID int64
 		WHERE b.id = $1 AND b.user_id = $2`, bookingID, userID).Scan(
 		&item.ID, &item.TicketCode, &item.Status, &item.CustomerName, &item.CustomerPhone,
 		&item.ServiceID, &item.ServiceName, &item.Price, &item.DurationMinutes,
-		&item.BarberID, &item.BarberName, &bookingDate, &item.BookingTime, &item.Notes,
+		&item.BarberID, &item.BarberName, &bookingDate, &item.BookingTime, &item.ChairNumber, &item.Notes,
 		&item.TotalAmount, &item.PaymentMethod, &item.PaymentStatus, &item.PaymentRedirectURL, &item.PaymentExpiresAt,
 	)
 	if err == nil {
@@ -215,7 +215,7 @@ func createBookingPaymentHandler(db *pgxpool.Pool, sessions *sessionStore) http.
 			writeJSON(w, http.StatusBadGateway, map[string]string{"error": "Gagal membuat sesi pembayaran baru. Silakan coba lagi."})
 			return
 		}
-		expires := startedAt.Add(15 * time.Minute)
+		expires := startedAt.Add(paymentTimeout)
 		if _, err := tx.Exec(r.Context(), `UPDATE bookings SET status = 'Menunggu', updated_at = CURRENT_TIMESTAMP WHERE id = $1`, bookingID); err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal mengaktifkan kembali booking."})
 			return

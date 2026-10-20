@@ -156,7 +156,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengunci slot sementara selama 15 menit dan membuat sesi pembayaran Midtrans. Booking baru muncul di tiket dan berstatus Dikonfirmasi setelah pembayaran lunas. Jika waktu pembayaran habis, booking dibatalkan dan slot dibuka kembali.",
+                "description": "Mengunci slot sementara selama 5 menit dan membuat sesi pembayaran Midtrans. Booking baru muncul di tiket dan berstatus Dikonfirmasi setelah pembayaran lunas. Jika waktu pembayaran habis, booking dibatalkan dan slot dibuka kembali.",
                 "consumes": [
                     "application/json"
                 ],
@@ -395,6 +395,305 @@
                 }
             }
         },
+        "/cashier/bookings/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengubah booking Sedang Dilayani menjadi Batal sehingga kursi kosong kembali. Baru bisa setelah 10 menit sejak booking masuk kursi. Pembayaran tidak dikembalikan (hangus) dan tetap dihitung sebagai omzet.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cashier"
+                ],
+                "summary": "Batalkan pelanggan yang tidak datang",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID booking",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.cashierQueueItem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cashier/bookings/{id}/finish": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengubah booking Sedang Dilayani menjadi Selesai sehingga kursi kosong kembali. Baru bisa setelah 30 menit sejak booking masuk kursi.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cashier"
+                ],
+                "summary": "Selesaikan layanan",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID booking",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.cashierQueueItem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cashier/queue": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menampilkan booking lunas (online dan walk-in) pada tanggal tertentu, diurutkan berdasarkan jam. Booking yang Batal atau belum dibayar tidak ditampilkan. Status: Dikonfirmasi (menunggu jadwal), Sedang Dilayani (otomatis saat jadwal tiba), Selesai.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cashier"
+                ],
+                "summary": "Daftar antrean kasir",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tanggal (YYYY-MM-DD), default hari ini",
+                        "name": "date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.cashierQueueResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cashier/summary": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Jumlah antrean menunggu, sedang dilayani, selesai, serta omzet dari transaksi Lunas pada tanggal tertentu.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cashier"
+                ],
+                "summary": "Ringkasan dashboard kasir",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tanggal (YYYY-MM-DD), default hari ini",
+                        "name": "date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.cashierSummaryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cashier/walk-in": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Kasir mencatat pelanggan yang datang langsung. Pembayaran dilakukan di kasir (Tunai, QRIS, Debit, Transfer) sehingga transaksi langsung Lunas. Jam booking memakai jam sekarang (WIB), lalu booking langsung masuk kursi (Sedang Dilayani) kalau barber dan kursi kosong; kalau tidak, tetap Dikonfirmasi sampai ada kursi.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cashier"
+                ],
+                "summary": "Tambah pelanggan walk-in",
+                "parameters": [
+                    {
+                        "description": "Data walk-in",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.walkInRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/main.cashierQueueItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "consumes": [
@@ -474,7 +773,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Hanya menampilkan booking yang pembayarannya sudah lunas.",
+                "description": "Menampilkan booking aktif milik pengguna, termasuk status transaksi pembayaran.",
                 "produces": [
                     "application/json"
                 ],
@@ -746,6 +1045,109 @@
                 }
             }
         },
+        "main.cashierQueueItem": {
+            "type": "object",
+            "properties": {
+                "barber_id": {
+                    "type": "integer"
+                },
+                "barber_name": {
+                    "type": "string"
+                },
+                "booking_date": {
+                    "type": "string"
+                },
+                "booking_time": {
+                    "type": "string"
+                },
+                "chair_number": {
+                    "type": "integer"
+                },
+                "customer_name": {
+                    "type": "string"
+                },
+                "customer_phone": {
+                    "type": "string"
+                },
+                "duration_minutes": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_walk_in": {
+                    "type": "boolean"
+                },
+                "payment_method": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "type": "string"
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "ticket_code": {
+                    "type": "string"
+                },
+                "total_amount": {
+                    "type": "number"
+                }
+            }
+        },
+        "main.cashierQueueResponse": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "queue": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/main.cashierQueueItem"
+                    }
+                },
+                "server_time": {
+                    "description": "Jam server, dipakai frontend untuk menghitung sisa waktu tombol Selesai/Batal.",
+                    "type": "string"
+                }
+            }
+        },
+        "main.cashierSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "cash_count": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "done": {
+                    "type": "integer"
+                },
+                "in_service": {
+                    "type": "integer"
+                },
+                "non_cash_count": {
+                    "type": "integer"
+                },
+                "revenue": {
+                    "type": "number"
+                },
+                "total_chairs": {
+                    "type": "integer"
+                },
+                "waiting": {
+                    "type": "integer"
+                }
+            }
+        },
         "main.createBookingRequest": {
             "type": "object",
             "properties": {
@@ -989,7 +1391,13 @@
                 "notes": {
                     "type": "string"
                 },
+                "payment_expires_at": {
+                    "type": "string"
+                },
                 "payment_method": {
+                    "type": "string"
+                },
+                "payment_redirect_url": {
                     "type": "string"
                 },
                 "payment_status": {
@@ -1041,6 +1449,9 @@
                 "booking_time": {
                     "type": "string"
                 },
+                "chair_number": {
+                    "type": "integer"
+                },
                 "customer_name": {
                     "type": "string"
                 },
@@ -1054,6 +1465,18 @@
                     "type": "integer"
                 },
                 "notes": {
+                    "type": "string"
+                },
+                "payment_expires_at": {
+                    "type": "string"
+                },
+                "payment_method": {
+                    "type": "string"
+                },
+                "payment_redirect_url": {
+                    "type": "string"
+                },
+                "payment_status": {
                     "type": "string"
                 },
                 "price": {
@@ -1070,6 +1493,29 @@
                 },
                 "ticket_code": {
                     "type": "string"
+                },
+                "total_amount": {
+                    "type": "number"
+                }
+            }
+        },
+        "main.walkInRequest": {
+            "type": "object",
+            "properties": {
+                "barber_id": {
+                    "type": "integer"
+                },
+                "customer_name": {
+                    "type": "string"
+                },
+                "customer_phone": {
+                    "type": "string"
+                },
+                "payment_method": {
+                    "type": "string"
+                },
+                "service_id": {
+                    "type": "integer"
                 }
             }
         }

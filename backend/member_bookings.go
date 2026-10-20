@@ -27,6 +27,7 @@ type userBooking struct {
 	BarberName         string     `json:"barber_name"`
 	BookingDate        string     `json:"booking_date"`
 	BookingTime        string     `json:"booking_time"`
+	ChairNumber        int        `json:"chair_number"`
 	Notes              string     `json:"notes"`
 	TotalAmount        float64    `json:"total_amount"`
 	PaymentMethod      *string    `json:"payment_method"`

@@ -269,6 +269,8 @@ export default function HomeBookingPage() {
     } catch {
       setBookingError("Tidak dapat terhubung ke server.");
     } finally {
+      // Draft form tidak dipulihkan lagi setelah percobaan booking, berhasil maupun gagal.
+      localStorage.removeItem(BOOKING_DRAFT_KEY);
       setBookingSubmitting(false);
     }
   }

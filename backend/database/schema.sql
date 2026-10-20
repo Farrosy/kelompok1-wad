@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     booking_time VARCHAR(10) NOT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'Menunggu', -- 'Menunggu', 'Sedang Dilayani', 'Dikonfirmasi', 'Selesai', 'Batal'
     notes TEXT,
+    started_at TIMESTAMPTZ, -- waktu booking masuk kursi (Sedang Dilayani)
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
