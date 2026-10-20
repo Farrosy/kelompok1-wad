@@ -24,6 +24,75 @@ definitions:
       rating:
         type: number
     type: object
+  main.cashierQueueItem:
+    properties:
+      barber_id:
+        type: integer
+      barber_name:
+        type: string
+      booking_date:
+        type: string
+      booking_time:
+        type: string
+      chair_number:
+        type: integer
+      customer_name:
+        type: string
+      customer_phone:
+        type: string
+      duration_minutes:
+        type: integer
+      id:
+        type: integer
+      is_walk_in:
+        type: boolean
+      payment_method:
+        type: string
+      payment_status:
+        type: string
+      service_name:
+        type: string
+      started_at:
+        type: string
+      status:
+        type: string
+      ticket_code:
+        type: string
+      total_amount:
+        type: number
+    type: object
+  main.cashierQueueResponse:
+    properties:
+      date:
+        type: string
+      queue:
+        items:
+          $ref: '#/definitions/main.cashierQueueItem'
+        type: array
+      server_time:
+        description: Jam server, dipakai frontend untuk menghitung sisa waktu tombol
+          Selesai/Batal.
+        type: string
+    type: object
+  main.cashierSummaryResponse:
+    properties:
+      cash_count:
+        type: integer
+      date:
+        type: string
+      done:
+        type: integer
+      in_service:
+        type: integer
+      non_cash_count:
+        type: integer
+      revenue:
+        type: number
+      total_chairs:
+        type: integer
+      waiting:
+        type: integer
+    type: object
   main.createBookingRequest:
     properties:
       barber_id:
@@ -182,7 +251,11 @@ definitions:
         type: integer
       notes:
         type: string
+      payment_expires_at:
+        type: string
       payment_method:
+        type: string
+      payment_redirect_url:
         type: string
       payment_status:
         type: string
@@ -216,6 +289,8 @@ definitions:
         type: string
       booking_time:
         type: string
+      chair_number:
+        type: integer
       customer_name:
         type: string
       customer_phone:
@@ -225,6 +300,14 @@ definitions:
       id:
         type: integer
       notes:
+        type: string
+      payment_expires_at:
+        type: string
+      payment_method:
+        type: string
+      payment_redirect_url:
+        type: string
+      payment_status:
         type: string
       price:
         type: number
@@ -236,6 +319,21 @@ definitions:
         type: string
       ticket_code:
         type: string
+      total_amount:
+        type: number
+    type: object
+  main.walkInRequest:
+    properties:
+      barber_id:
+        type: integer
+      customer_name:
+        type: string
+      customer_phone:
+        type: string
+      payment_method:
+        type: string
+      service_id:
+        type: integer
     type: object
 host: localhost:3000
 info:
@@ -339,7 +437,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Mengunci slot sementara selama 15 menit dan membuat sesi pembayaran
+      description: Mengunci slot sementara selama 5 menit dan membuat sesi pembayaran
         Midtrans. Booking baru muncul di tiket dan berstatus Dikonfirmasi setelah
         pembayaran lunas. Jika waktu pembayaran habis, booking dibatalkan dan slot
         dibuka kembali.
@@ -496,6 +594,207 @@ paths:
       summary: Membatalkan atau mengubah jadwal booking milik user
       tags:
       - bookings
+  /cashier/bookings/{id}/cancel:
+    patch:
+      description: Mengubah booking Sedang Dilayani menjadi Batal sehingga kursi kosong
+        kembali. Baru bisa setelah 10 menit sejak booking masuk kursi. Pembayaran
+        tidak dikembalikan (hangus) dan tetap dihitung sebagai omzet.
+      parameters:
+      - description: ID booking
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.cashierQueueItem'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Batalkan pelanggan yang tidak datang
+      tags:
+      - cashier
+  /cashier/bookings/{id}/finish:
+    patch:
+      description: Mengubah booking Sedang Dilayani menjadi Selesai sehingga kursi
+        kosong kembali. Baru bisa setelah 30 menit sejak booking masuk kursi.
+      parameters:
+      - description: ID booking
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.cashierQueueItem'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Selesaikan layanan
+      tags:
+      - cashier
+  /cashier/queue:
+    get:
+      description: 'Menampilkan booking lunas (online dan walk-in) pada tanggal tertentu,
+        diurutkan berdasarkan jam. Booking yang Batal atau belum dibayar tidak ditampilkan.
+        Status: Dikonfirmasi (menunggu jadwal), Sedang Dilayani (otomatis saat jadwal
+        tiba), Selesai.'
+      parameters:
+      - description: Tanggal (YYYY-MM-DD), default hari ini
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.cashierQueueResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Daftar antrean kasir
+      tags:
+      - cashier
+  /cashier/summary:
+    get:
+      description: Jumlah antrean menunggu, sedang dilayani, selesai, serta omzet
+        dari transaksi Lunas pada tanggal tertentu.
+      parameters:
+      - description: Tanggal (YYYY-MM-DD), default hari ini
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.cashierSummaryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Ringkasan dashboard kasir
+      tags:
+      - cashier
+  /cashier/walk-in:
+    post:
+      consumes:
+      - application/json
+      description: Kasir mencatat pelanggan yang datang langsung. Pembayaran dilakukan
+        di kasir (Tunai, QRIS, Debit, Transfer) sehingga transaksi langsung Lunas.
+        Jam booking memakai jam sekarang (WIB), lalu booking langsung masuk kursi
+        (Sedang Dilayani) kalau barber dan kursi kosong; kalau tidak, tetap Dikonfirmasi
+        sampai ada kursi.
+      parameters:
+      - description: Data walk-in
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/main.walkInRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.cashierQueueItem'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Tambah pelanggan walk-in
+      tags:
+      - cashier
   /login:
     post:
       consumes:
@@ -543,7 +842,8 @@ paths:
       - auth
   /my-tickets:
     get:
-      description: Hanya menampilkan booking yang pembayarannya sudah lunas.
+      description: Menampilkan booking aktif milik pengguna, termasuk status transaksi
+        pembayaran.
       produces:
       - application/json
       responses:

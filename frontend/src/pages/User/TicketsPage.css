@@ -287,6 +287,9 @@
 .tp-detail-notice.is-success { border-color: #b8dec2; background: #eef8f0; color: #247342; }
 .tp-detail-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(260px, .8fr); align-items: start; gap: 16px; }
 .tp-detail-panel { padding: 22px; border: 1px solid var(--line); border-radius: 11px; background: #fff; box-shadow: 0 5px 20px rgba(28,25,23,.035); }
+.tp-detail-panel.is-paid { border-color: #b8dec2; background: #eef8f0; }
+.tp-detail-panel.is-paid .tp-detail-amount { border-bottom-color: #cfe9d6; }
+.tp-detail-panel.is-paid .tp-detail-amount, .tp-detail-panel.is-paid .tp-detail-payment-method { color: #247342; }
 .tp-detail-panel h2 { margin: 0 0 8px; font: 600 20px 'Playfair Display', Georgia, serif; }
 .tp-detail-row { display: flex; gap: 11px; padding: 14px 0; border-bottom: 1px solid #f1efea; color: var(--gold-soft); }
 .tp-detail-row > div { display: flex; flex-direction: column; gap: 4px; color: var(--ink); }

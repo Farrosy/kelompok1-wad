@@ -1,6 +1,66 @@
-export default function WalkInForm() {
+import { useState } from "react";
+
+const PAYMENT_METHODS = [
+  { value: "Tunai", label: "Tunai" },
+  { value: "QRIS", label: "QRIS / Statis" },
+  { value: "Debit", label: "Kartu Debit" },
+  { value: "Transfer", label: "Transfer Bank" },
+];
+
+function formatRupiah(value) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value || 0);
+}
+
+export default function WalkInForm({ nameInputRef, services, barbers, usedChairs, freeChair, onSubmit }) {
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [serviceId, setServiceId] = useState(null);
+  const [barberId, setBarberId] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("Tunai");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // Barber yang sedang melayani di salah satu kursi dianggap sibuk.
+  const busyBarbers = {};
+  Object.entries(usedChairs).forEach(([chair, booking]) => {
+    busyBarbers[booking.barber_id] = chair;
+  });
+
+  const selectedService = services.find((s) => s.id === serviceId);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!customerName.trim() || !serviceId || !barberId) {
+      setError("Nama tamu, layanan, dan barber wajib dipilih.");
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    setSuccess("");
+    try {
+      const created = await onSubmit({
+        customer_name: customerName.trim(),
+        customer_phone: customerPhone.trim(),
+        service_id: serviceId,
+        barber_id: barberId,
+        payment_method: paymentMethod,
+      });
+      setSuccess(`Walk-in ${created.ticket_code} tersimpan dan sudah lunas.`);
+      setCustomerName("");
+      setCustomerPhone("");
+      setServiceId(null);
+      setBarberId(null);
+      setPaymentMethod("Tunai");
+    } catch (err) {
+      setError(err.message || "Walk-in gagal disimpan.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
-    <div className="walkin-form-card">
+    <form className="walkin-form-card" onSubmit={handleSubmit}>
       <div className="walkin-header">
         <div className="walkin-title">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#78350f" strokeWidth="2">
@@ -11,130 +71,88 @@ export default function WalkInForm() {
           </svg>
           <h3>Input Walk-In Cepat</h3>
         </div>
-        <span className="walkin-ticket-id">#KB-108</span>
       </div>
 
       <div className="walkin-station-badge">
-        <span className="dot-ready"></span> Stasiun Tersedia: Kursi 03 <span>(Barber Bima Sakti Siap)</span>
+        <span className="dot-ready"></span>
+        {freeChair ? <>Stasiun Tersedia: Kursi {String(freeChair).padStart(2, "0")}</> : <>Semua kursi sedang terisi</>}
       </div>
 
       <div className="w-form-group">
-        <label>NAMA TAMU *</label>
-        <input type="text" placeholder="Nama pelanggan walk-in..." />
+        <label htmlFor="walkin-name">NAMA TAMU *</label>
+        <input
+          id="walkin-name"
+          ref={nameInputRef}
+          type="text"
+          placeholder="Nama pelanggan walk-in..."
+          value={customerName}
+          maxLength={100}
+          onChange={(e) => setCustomerName(e.target.value)}
+        />
       </div>
 
       <div className="w-form-group">
-        <label>NOMOR WHATSAPP / HP</label>
-        <input type="text" placeholder="0812-xxxx-xxxx (opsional untuk e-struk)" />
+        <label htmlFor="walkin-phone">NOMOR WHATSAPP / HP</label>
+        <input
+          id="walkin-phone"
+          type="text"
+          placeholder="0812-xxxx-xxxx (opsional untuk e-struk)"
+          value={customerPhone}
+          maxLength={20}
+          onChange={(e) => setCustomerPhone(e.target.value)}
+        />
       </div>
 
-      <div className="w-section-title">PILIHAN LAYANAN CEPAT</div>
+      <div className="w-section-title">PILIHAN LAYANAN</div>
       <div className="w-service-options">
-        <label className="w-radio-card active">
-          <input type="radio" name="service" defaultChecked />
-          <div className="w-radio-content">
-            <div className="w-radio-text">
-              <strong>Signature Haircut & Styling</strong>
-              <span>Wash, Precision Cut, Tonic, Styling Gel</span>
+        {services.length === 0 && <p className="queue-empty">Memuat layanan...</p>}
+        {services.map((service) => (
+          <label key={service.id} className={`w-radio-card${serviceId === service.id ? " active" : ""}`}>
+            <input type="radio" name="service" checked={serviceId === service.id} onChange={() => setServiceId(service.id)} />
+            <div className="w-radio-content">
+              <div className="w-radio-text">
+                <strong>{service.name}</strong>
+                <span>{service.description || `${service.duration_minutes} menit`}</span>
+              </div>
+              <div className="w-radio-price">{formatRupiah(service.price)}</div>
             </div>
-            <div className="w-radio-price">Rp 180.000</div>
-          </div>
-        </label>
-
-        <label className="w-radio-card">
-          <input type="radio" name="service" />
-          <div className="w-radio-content">
-            <div className="w-radio-text">
-              <strong>The Gentleman Complete</strong>
-              <span>Haircut + Beard Sculpt + Hot Towel & Massage</span>
-            </div>
-            <div className="w-radio-price">Rp 260.000</div>
-          </div>
-        </label>
-
-        <label className="w-radio-card">
-          <input type="radio" name="service" />
-          <div className="w-radio-content">
-            <div className="w-radio-text">
-              <strong>Beard Sculpt & Trim</strong>
-              <span>Shave, Edge Lining & Soothing Balm</span>
-            </div>
-            <div className="w-radio-price">Rp 110.000</div>
-          </div>
-        </label>
+          </label>
+        ))}
       </div>
 
       <div className="w-section-title split-title">
-        <span>ALOKASI KURSI / BARBER PILIHAN</span>
-        <span className="w-link-text">Pilih staf atau otomatis</span>
+        <span>BARBER PILIHAN</span>
+        <span className="w-link-text">Pilih barber yang sedang siap</span>
       </div>
 
       <div className="w-chair-grid">
-        <label className="w-chair-card busy">
-          <div className="w-chair-header">
-            <span><input type="radio" name="chair" disabled /> Kursi 01</span>
-            <span className="badge-busy">Sibuk</span>
-          </div>
-          <div className="w-chair-body">
-            <strong>Master Bayu</strong>
-            <span>~15 mnt lagi</span>
-          </div>
-        </label>
-
-        <label className="w-chair-card busy">
-          <div className="w-chair-header">
-            <span><input type="radio" name="chair" disabled /> Kursi 02</span>
-            <span className="badge-busy">Sibuk</span>
-          </div>
-          <div className="w-chair-body">
-            <strong>Dimas Arya</strong>
-            <span>~25 mnt lagi</span>
-          </div>
-        </label>
-
-        <label className="w-chair-card ready active">
-          <div className="w-chair-header">
-            <span><input type="radio" name="chair" defaultChecked /> Kursi 03</span>
-            <span className="badge-ready">SIAP</span>
-          </div>
-          <div className="w-chair-body">
-            <strong>Bima Sakti</strong>
-            <span className="text-green">Tersedia langsung</span>
-          </div>
-        </label>
-
-        <label className="w-chair-card busy">
-          <div className="w-chair-header">
-            <span><input type="radio" name="chair" disabled /> Kursi 04</span>
-            <span className="badge-busy">Sibuk</span>
-          </div>
-          <div className="w-chair-body">
-            <strong>Ardi Gunawan</strong>
-            <span>~30 mnt lagi</span>
-          </div>
-        </label>
+        {barbers.map((barber) => {
+          const busyChair = busyBarbers[barber.id];
+          const disabled = !barber.available || Boolean(busyChair);
+          const active = barberId === barber.id;
+          return (
+            <label key={barber.id} className={`w-chair-card ${disabled ? "busy" : "ready"}${active ? " active" : ""}`}>
+              <div className="w-chair-header">
+                <span>
+                  <input type="radio" name="barber" disabled={disabled} checked={active} onChange={() => setBarberId(barber.id)} />{" "}
+                  {barber.name}
+                </span>
+                <span className={disabled ? "badge-busy" : "badge-ready"}>{disabled ? "Sibuk" : "SIAP"}</span>
+              </div>
+              <div className="w-chair-body">
+                <span className={disabled ? "" : "text-green"}>
+                  {!barber.available ? "Tidak bertugas" : busyChair ? `Sedang di Kursi ${busyChair}` : "Tersedia langsung"}
+                </span>
+              </div>
+            </label>
+          );
+        })}
       </div>
 
-      <label className="w-addon-checkbox">
-        <div className="w-addon-left">
-          <input type="checkbox" />
-          <span>Pomade Matte Clay (BARBER ONE Formula 80g)</span>
-        </div>
-        <strong className="w-addon-price">+Rp 110.000</strong>
-      </label>
-
       <div className="w-summary-box">
-        <div className="w-summary-row">
-          <span>Subtotal</span>
-          <span>Rp 180.000</span>
-        </div>
-        <div className="w-summary-row">
-          <span>PPN (10%)</span>
-          <span>Rp 18.000</span>
-        </div>
         <div className="w-summary-row total">
           <span>TOTAL TAGIHAN</span>
-          <span>Rp 198.000</span>
+          <span>{formatRupiah(selectedService?.price)}</span>
         </div>
 
         <div className="w-payment-header">
@@ -143,14 +161,12 @@ export default function WalkInForm() {
         </div>
 
         <div className="w-payment-options">
-          <label className="w-pay-opt active">
-            <input type="radio" name="payment" defaultChecked />
-            <span>QRIS / Statis</span>
-          </label>
-          <label className="w-pay-opt">
-            <input type="radio" name="payment" />
-            <span>Transfer Bank</span>
-          </label>
+          {PAYMENT_METHODS.map((method) => (
+            <label key={method.value} className={`w-pay-opt${paymentMethod === method.value ? " active" : ""}`}>
+              <input type="radio" name="payment" checked={paymentMethod === method.value} onChange={() => setPaymentMethod(method.value)} />
+              <span>{method.label}</span>
+            </label>
+          ))}
         </div>
 
         <div className="w-payment-alert">
@@ -161,15 +177,13 @@ export default function WalkInForm() {
           <span>Wajib lunas sebelum tiket antrean fisik diterbitkan & masuk rotasi kursi.</span>
         </div>
 
-        <button className="btn-confirm-pay">
-          🖨️ Konfirmasi Bayar & Cetak Tiket
-        </button>
+        {error && <p className="cashier-alert" role="alert">{error}</p>}
+        {success && <p className="cashier-success" role="status">{success}</p>}
 
-        <div className="w-print-status">
-          <span>🖨️ Cetak Tiket (Setelah Lunas)</span>
-          <span className="text-green">Otomatis Cetak Thermal</span>
-        </div>
+        <button type="submit" className="btn-confirm-pay" disabled={submitting}>
+          {submitting ? "Menyimpan..." : "Konfirmasi Bayar & Simpan Walk-in"}
+        </button>
       </div>
-    </div>
+    </form>
   );
 }

@@ -17,6 +17,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// Batas waktu user menyelesaikan pembayaran Midtrans.
+// Lewat dari ini transaksi dianggap Gagal dan booking dibatalkan.
+const paymentTimeout = 5 * time.Minute
+
 type midtransClient struct {
 	serverKey string
 	baseURL   string
@@ -48,7 +52,7 @@ func (m *midtransClient) createSnap(ctx context.Context, orderID, name, phone st
 		"callbacks":           map[string]string{"finish": finishURL},
 		"expiry": map[string]any{
 			"start_time": paymentStartedAt.In(time.FixedZone("WIB", 7*60*60)).Format("2006-01-02 15:04:05 -0700"),
-			"duration":   15,
+			"duration":   int(paymentTimeout.Minutes()),
 			"unit":       "minutes",
 		},
 	}
