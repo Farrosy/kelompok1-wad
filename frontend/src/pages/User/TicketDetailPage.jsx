@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, CalendarDays, CircleAlert, CircleCheck, Clock3, CreditCard, MapPin, Scissors, Ticket, UserRound } from "lucide-react";
 import { API_BASE_URL } from "../../config/api";
+import ReviewForm from "./components/ReviewForm";
 import "./TicketsPage.css";
 
 function getToken() {
@@ -132,6 +133,7 @@ export default function TicketDetailPage() {
             {pending && !canContinuePending && <p className="tp-detail-expiry">Sesi pembayaran sedang diperbarui oleh Midtrans. Muat ulang beberapa saat lagi untuk mencoba kembali.</p>}
           </aside>
         </div>
+        <ReviewForm bookingId={booking.id} completed={booking.status === "Selesai"} />
       </div>
     </main>
   );

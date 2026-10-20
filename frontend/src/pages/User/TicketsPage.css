@@ -291,6 +291,15 @@
 .tp-detail-panel.is-paid .tp-detail-amount { border-bottom-color: #cfe9d6; }
 .tp-detail-panel.is-paid .tp-detail-amount, .tp-detail-panel.is-paid .tp-detail-payment-method { color: #247342; }
 .tp-detail-panel h2 { margin: 0 0 8px; font: 600 20px 'Playfair Display', Georgia, serif; }
+.tp-review { margin-top: 16px; }
+.tp-review-form { display: grid; gap: 9px; max-width: 560px; }
+.tp-review-form label { color: #57534e; font-size: 12px; font-weight: 600; }
+.tp-review-form select, .tp-review-form textarea { width: 100%; border: 1px solid #ddd9d0; border-radius: 7px; padding: 10px 12px; color: var(--ink); background: #fff; font: inherit; font-size: 13px; }
+.tp-review-form textarea { resize: vertical; }
+.tp-review-form .tp-btn { justify-self: start; margin-top: 4px; }
+.tp-review-stars { display: flex; gap: 3px; color: #f5a623; }
+.tp-review-saved p { margin: 10px 0; color: #57534e; font-size: 13px; white-space: pre-wrap; }
+.tp-review-saved small { color: var(--muted); font-size: 11px; }
 .tp-detail-row { display: flex; gap: 11px; padding: 14px 0; border-bottom: 1px solid #f1efea; color: var(--gold-soft); }
 .tp-detail-row > div { display: flex; flex-direction: column; gap: 4px; color: var(--ink); }
 .tp-detail-row small, .tp-detail-ticket-code small, .tp-detail-notes small { color: var(--muted); font-size: 10px; }

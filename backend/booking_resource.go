@@ -24,6 +24,10 @@ func bookingResourceHandler(db *pgxpool.Pool, sessions *sessionStore) http.Handl
 			createBookingPaymentHandler(db, sessions)(w, r)
 			return
 		}
+		if len(parts) == 4 && parts[0] == "api" && parts[1] == "bookings" && parts[3] == "review" {
+			bookingReviewHandler(db, sessions)(w, r)
+			return
+		}
 		if r.Method == http.MethodPatch {
 			patchHandler(w, r)
 			return
