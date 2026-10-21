@@ -64,6 +64,13 @@ func main() {
 		}
 	})
 	mux.HandleFunc("/api/bookings/", bookingResourceHandler(db, sessions))
+	mux.HandleFunc("/api/reviews", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			listReviewsHandler(db)(w, r)
+			return
+		}
+		createReviewHandler(db, sessions)(w, r)
+	})
 	mux.HandleFunc("/api/my-tickets", myTicketsHandler(db, sessions))
 	mux.HandleFunc("/api/payments/midtrans/notification", midtransNotificationHandler(db))
 	mux.HandleFunc("/api/availability", getAvailabilityHandler(db))
