@@ -215,6 +215,74 @@
                 }
             }
         },
+        "/bookings/{id}": {
+            "get": {
+                "security": [{"BearerAuth": []}],
+                "produces": ["application/json"],
+                "tags": ["bookings"],
+                "summary": "Detail booking milik user yang sedang login",
+                "parameters": [{"type": "integer", "description": "ID booking", "name": "id", "in": "path", "required": true}],
+                "responses": {
+                    "200": {"description": "OK", "schema": {"type": "object", "properties": {"booking": {"$ref": "#/definitions/main.userBooking"}}}},
+                    "400": {"description": "ID booking tidak valid", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "401": {"description": "Unauthorized", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "404": {"description": "Booking tidak ditemukan", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "500": {"description": "Internal Server Error", "schema": {"type": "object", "additionalProperties": {"type": "string"}}}
+                }
+            }
+        },
+        "/bookings/{id}/payment": {
+            "post": {
+                "security": [{"BearerAuth": []}],
+                "produces": ["application/json"],
+                "tags": ["payments"],
+                "summary": "Membuat ulang sesi pembayaran booking",
+                "description": "Mengembalikan URL pembayaran aktif atau membuat sesi Midtrans baru untuk booking yang memenuhi syarat.",
+                "parameters": [{"type": "integer", "description": "ID booking", "name": "id", "in": "path", "required": true}],
+                "responses": {
+                    "200": {"description": "Sesi pembayaran aktif", "schema": {"type": "object", "properties": {"payment_redirect_url": {"type": "string"}}}},
+                    "201": {"description": "Sesi pembayaran baru dibuat", "schema": {"type": "object", "properties": {"payment_redirect_url": {"type": "string"}}}},
+                    "401": {"description": "Unauthorized", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "404": {"description": "Booking tidak ditemukan", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "409": {"description": "Booking belum dapat dibayar atau transaksi tidak memenuhi syarat", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "503": {"description": "Payment gateway belum tersedia", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "502": {"description": "Gagal membuat sesi pembayaran di gateway", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "500": {"description": "Internal Server Error", "schema": {"type": "object", "additionalProperties": {"type": "string"}}}
+                }
+            }
+        },
+        "/bookings/{id}/review": {
+            "get": {
+                "security": [{"BearerAuth": []}],
+                "produces": ["application/json"],
+                "tags": ["reviews"],
+                "summary": "Mengambil review booking",
+                "parameters": [{"type": "integer", "description": "ID booking", "name": "id", "in": "path", "required": true}],
+                "responses": {
+                    "200": {"description": "Review booking atau null jika belum ada", "schema": {"type": "object", "properties": {"review": {"type": "object", "properties": {"rating": {"type": "integer"}, "comment": {"type": "string"}, "created_at": {"type": "string"}}}}}},
+                    "400": {"description": "ID booking tidak valid", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "401": {"description": "Unauthorized", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "404": {"description": "Booking tidak ditemukan", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "500": {"description": "Internal Server Error", "schema": {"type": "object", "additionalProperties": {"type": "string"}}}
+                }
+            },
+            "post": {
+                "security": [{"BearerAuth": []}],
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "tags": ["reviews"],
+                "summary": "Mengirim review untuk booking yang selesai",
+                "parameters": [{"type": "integer", "description": "ID booking", "name": "id", "in": "path", "required": true}, {"name": "body", "in": "body", "required": true, "schema": {"type": "object", "required": ["rating"], "properties": {"rating": {"type": "integer", "minimum": 1, "maximum": 5}, "comment": {"type": "string", "maxLength": 1000}}}}],
+                "responses": {
+                    "201": {"description": "Review berhasil disimpan", "schema": {"type": "object", "properties": {"review": {"type": "object", "properties": {"rating": {"type": "integer"}, "comment": {"type": "string"}, "created_at": {"type": "string"}}}}}},
+                    "400": {"description": "Format atau nilai review tidak valid", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "401": {"description": "Unauthorized", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "404": {"description": "Booking tidak ditemukan", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "409": {"description": "Booking belum selesai atau review sudah pernah dikirim", "schema": {"type": "object", "additionalProperties": {"type": "string"}}},
+                    "500": {"description": "Internal Server Error", "schema": {"type": "object", "additionalProperties": {"type": "string"}}}
+                }
+            }
+        },
         "/bookings/{id}/cancel": {
             "patch": {
                 "security": [
