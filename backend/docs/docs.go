@@ -16,1003 +16,1383 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/availability": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookings"
-                ],
-                "summary": "Cek slot booking yang tersedia",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID barber",
-                        "name": "barber_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Tanggal booking (YYYY-MM-DD)",
-                        "name": "date",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "ID layanan",
-                        "name": "service_id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/main.availabilityResponse"
+                "get": {
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "bookings"
+                        ],
+                        "summary": "Cek slot booking yang tersedia",
+                        "parameters": [
+                                {
+                                        "type": "integer",
+                                        "description": "ID barber",
+                                        "name": "barber_id",
+                                        "in": "query",
+                                        "required": true
+                                },
+                                {
+                                        "type": "string",
+                                        "description": "Tanggal booking (YYYY-MM-DD)",
+                                        "name": "date",
+                                        "in": "query",
+                                        "required": true
+                                },
+                                {
+                                        "type": "integer",
+                                        "description": "ID layanan",
+                                        "name": "service_id",
+                                        "in": "query",
+                                        "required": true
+                                }
+                        ],
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.availabilityResponse"
+                                        }
+                                },
+                                "400": {
+                                        "description": "Bad Request",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "500": {
+                                        "description": "Internal Server Error",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/barbers": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "barbers"
-                ],
-                "summary": "Daftar barber",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/main.barber"
+                "get": {
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "barbers"
+                        ],
+                        "summary": "Daftar barber",
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "array",
+                                                        "items": {
+                                                                "$ref": "#/definitions/main.barber"
+                                                        }
+                                                }
+                                        }
+                                },
+                                "500": {
+                                        "description": "Internal Server Error",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
                                 }
-                            }
                         }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/bookings": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookings"
-                ],
-                "summary": "Daftar booking user yang sedang login",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/main.userBooking"
+                "get": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
                                 }
-                            }
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "bookings"
+                        ],
+                        "summary": "Daftar booking user yang sedang login",
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "array",
+                                                        "items": {
+                                                                "$ref": "#/definitions/main.userBooking"
+                                                        }
+                                                }
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "500": {
+                                        "description": "Internal Server Error",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                },
+                "post": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "description": "Mengunci slot sementara selama 5 menit dan membuat sesi pembayaran Midtrans. Booking baru muncul di tiket dan berstatus Dikonfirmasi setelah pembayaran lunas. Jika waktu pembayaran habis, booking dibatalkan dan slot dibuka kembali.",
+                        "consumes": [
+                                "application/json"
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "bookings"
+                        ],
+                        "summary": "Membuat booking",
+                        "parameters": [
+                                {
+                                        "description": "Data booking",
+                                        "name": "body",
+                                        "in": "body",
+                                        "required": true,
+                                        "schema": {
+                                                "$ref": "#/definitions/main.createBookingRequest"
+                                        }
+                                }
+                        ],
+                        "responses": {
+                                "201": {
+                                        "description": "Created",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.createBookingResponse"
+                                        }
+                                },
+                                "400": {
+                                        "description": "Bad Request",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "409": {
+                                        "description": "Conflict",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Mengunci slot sementara selama 5 menit dan membuat sesi pembayaran Midtrans. Booking baru muncul di tiket dan berstatus Dikonfirmasi setelah pembayaran lunas. Jika waktu pembayaran habis, booking dibatalkan dan slot dibuka kembali.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookings"
-                ],
-                "summary": "Membuat booking",
-                "parameters": [
-                    {
-                        "description": "Data booking",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.createBookingRequest"
+        },
+        "/bookings/{id}": {
+                "get": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "bookings"
+                        ],
+                        "summary": "Detail booking milik user yang sedang login",
+                        "parameters": [
+                                {
+                                        "type": "integer",
+                                        "description": "ID booking",
+                                        "name": "id",
+                                        "in": "path",
+                                        "required": true
+                                }
+                        ],
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                        "booking": {
+                                                                "$ref": "#/definitions/main.userBooking"
+                                                        }
+                                                }
+                                        }
+                                },
+                                "400": {
+                                        "description": "ID booking tidak valid",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "404": {
+                                        "description": "Booking tidak ditemukan",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "500": {
+                                        "description": "Internal Server Error",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/main.createBookingResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
+        },
+        "/bookings/{id}/payment": {
+                "post": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "payments"
+                        ],
+                        "summary": "Membuat ulang sesi pembayaran booking",
+                        "description": "Mengembalikan URL pembayaran aktif atau membuat sesi Midtrans baru untuk booking yang memenuhi syarat.",
+                        "parameters": [
+                                {
+                                        "type": "integer",
+                                        "description": "ID booking",
+                                        "name": "id",
+                                        "in": "path",
+                                        "required": true
+                                }
+                        ],
+                        "responses": {
+                                "200": {
+                                        "description": "Sesi pembayaran aktif",
+                                        "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                        "payment_redirect_url": {
+                                                                "type": "string"
+                                                        }
+                                                }
+                                        }
+                                },
+                                "201": {
+                                        "description": "Sesi pembayaran baru dibuat",
+                                        "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                        "payment_redirect_url": {
+                                                                "type": "string"
+                                                        }
+                                                }
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "404": {
+                                        "description": "Booking tidak ditemukan",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "409": {
+                                        "description": "Booking belum dapat dibayar atau transaksi tidak memenuhi syarat",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "503": {
+                                        "description": "Payment gateway belum tersedia",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "502": {
+                                        "description": "Gagal membuat sesi pembayaran di gateway",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "500": {
+                                        "description": "Internal Server Error",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
+                        }
+                }
+        },
+        "/bookings/{id}/review": {
+                "get": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "reviews"
+                        ],
+                        "summary": "Mengambil review booking",
+                        "parameters": [
+                                {
+                                        "type": "integer",
+                                        "description": "ID booking",
+                                        "name": "id",
+                                        "in": "path",
+                                        "required": true
+                                }
+                        ],
+                        "responses": {
+                                "200": {
+                                        "description": "Review booking atau null jika belum ada",
+                                        "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                        "review": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                        "rating": {
+                                                                                "type": "integer"
+                                                                        },
+                                                                        "comment": {
+                                                                                "type": "string"
+                                                                        },
+                                                                        "created_at": {
+                                                                                "type": "string"
+                                                                        }
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                },
+                                "400": {
+                                        "description": "ID booking tidak valid",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "404": {
+                                        "description": "Booking tidak ditemukan",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "500": {
+                                        "description": "Internal Server Error",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
+                        }
+                },
+                "post": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "consumes": [
+                                "application/json"
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "reviews"
+                        ],
+                        "summary": "Mengirim review untuk booking yang selesai",
+                        "parameters": [
+                                {
+                                        "type": "integer",
+                                        "description": "ID booking",
+                                        "name": "id",
+                                        "in": "path",
+                                        "required": true
+                                },
+                                {
+                                        "name": "body",
+                                        "in": "body",
+                                        "required": true,
+                                        "schema": {
+                                                "type": "object",
+                                                "required": [
+                                                        "rating"
+                                                ],
+                                                "properties": {
+                                                        "rating": {
+                                                                "type": "integer",
+                                                                "minimum": 1,
+                                                                "maximum": 5
+                                                        },
+                                                        "comment": {
+                                                                "type": "string",
+                                                                "maxLength": 1000
+                                                        }
+                                                }
+                                        }
+                                }
+                        ],
+                        "responses": {
+                                "201": {
+                                        "description": "Review berhasil disimpan",
+                                        "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                        "review": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                        "rating": {
+                                                                                "type": "integer"
+                                                                        },
+                                                                        "comment": {
+                                                                                "type": "string"
+                                                                        },
+                                                                        "created_at": {
+                                                                                "type": "string"
+                                                                        }
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                },
+                                "400": {
+                                        "description": "Format atau nilai review tidak valid",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "404": {
+                                        "description": "Booking tidak ditemukan",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "409": {
+                                        "description": "Booking belum selesai atau review sudah pernah dikirim",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "500": {
+                                        "description": "Internal Server Error",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
+                        }
+                }
         },
         "/bookings/{id}/cancel": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookings"
-                ],
-                "summary": "Membatalkan atau mengubah jadwal booking milik user",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID booking",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Jadwal baru (untuk reschedule)",
-                        "name": "body",
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/main.rescheduleBookingRequest"
+                "patch": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "consumes": [
+                                "application/json"
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "bookings"
+                        ],
+                        "summary": "Membatalkan atau mengubah jadwal booking milik user",
+                        "parameters": [
+                                {
+                                        "type": "integer",
+                                        "description": "ID booking",
+                                        "name": "id",
+                                        "in": "path",
+                                        "required": true
+                                },
+                                {
+                                        "description": "Jadwal baru (untuk reschedule)",
+                                        "name": "body",
+                                        "in": "body",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.rescheduleBookingRequest"
+                                        }
+                                }
+                        ],
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": true
+                                        }
+                                },
+                                "400": {
+                                        "description": "Bad Request",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "403": {
+                                        "description": "Forbidden",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "404": {
+                                        "description": "Not Found",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "409": {
+                                        "description": "Conflict",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/bookings/{id}/reschedule": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookings"
-                ],
-                "summary": "Membatalkan atau mengubah jadwal booking milik user",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID booking",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Jadwal baru (untuk reschedule)",
-                        "name": "body",
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/main.rescheduleBookingRequest"
+                "patch": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "consumes": [
+                                "application/json"
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "bookings"
+                        ],
+                        "summary": "Membatalkan atau mengubah jadwal booking milik user",
+                        "parameters": [
+                                {
+                                        "type": "integer",
+                                        "description": "ID booking",
+                                        "name": "id",
+                                        "in": "path",
+                                        "required": true
+                                },
+                                {
+                                        "description": "Jadwal baru (untuk reschedule)",
+                                        "name": "body",
+                                        "in": "body",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.rescheduleBookingRequest"
+                                        }
+                                }
+                        ],
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": true
+                                        }
+                                },
+                                "400": {
+                                        "description": "Bad Request",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "403": {
+                                        "description": "Forbidden",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "404": {
+                                        "description": "Not Found",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "409": {
+                                        "description": "Conflict",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/cashier/bookings/{id}/cancel": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Mengubah booking Sedang Dilayani menjadi Batal sehingga kursi kosong kembali. Baru bisa setelah 10 menit sejak booking masuk kursi. Pembayaran tidak dikembalikan (hangus) dan tetap dihitung sebagai omzet.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "cashier"
-                ],
-                "summary": "Batalkan pelanggan yang tidak datang",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID booking",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/main.cashierQueueItem"
+                "patch": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "description": "Mengubah booking Sedang Dilayani menjadi Batal sehingga kursi kosong kembali. Baru bisa setelah 10 menit sejak booking masuk kursi. Pembayaran tidak dikembalikan (hangus) dan tetap dihitung sebagai omzet.",
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "cashier"
+                        ],
+                        "summary": "Batalkan pelanggan yang tidak datang",
+                        "parameters": [
+                                {
+                                        "type": "integer",
+                                        "description": "ID booking",
+                                        "name": "id",
+                                        "in": "path",
+                                        "required": true
+                                }
+                        ],
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.cashierQueueItem"
+                                        }
+                                },
+                                "404": {
+                                        "description": "Not Found",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "409": {
+                                        "description": "Conflict",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/cashier/bookings/{id}/finish": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Mengubah booking Sedang Dilayani menjadi Selesai sehingga kursi kosong kembali. Baru bisa setelah 30 menit sejak booking masuk kursi.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "cashier"
-                ],
-                "summary": "Selesaikan layanan",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID booking",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/main.cashierQueueItem"
+                "patch": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "description": "Mengubah booking Sedang Dilayani menjadi Selesai sehingga kursi kosong kembali. Baru bisa setelah 30 menit sejak booking masuk kursi.",
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "cashier"
+                        ],
+                        "summary": "Selesaikan layanan",
+                        "parameters": [
+                                {
+                                        "type": "integer",
+                                        "description": "ID booking",
+                                        "name": "id",
+                                        "in": "path",
+                                        "required": true
+                                }
+                        ],
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.cashierQueueItem"
+                                        }
+                                },
+                                "404": {
+                                        "description": "Not Found",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "409": {
+                                        "description": "Conflict",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/cashier/queue": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Menampilkan booking lunas (online dan walk-in) pada tanggal tertentu, diurutkan berdasarkan jam. Booking yang Batal atau belum dibayar tidak ditampilkan. Status: Dikonfirmasi (menunggu jadwal), Sedang Dilayani (otomatis saat jadwal tiba), Selesai.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "cashier"
-                ],
-                "summary": "Daftar antrean kasir",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Tanggal (YYYY-MM-DD), default hari ini",
-                        "name": "date",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/main.cashierQueueResponse"
+                "get": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "description": "Menampilkan booking lunas (online dan walk-in) pada tanggal tertentu, diurutkan berdasarkan jam. Booking yang Batal atau belum dibayar tidak ditampilkan. Status: Dikonfirmasi (menunggu jadwal), Sedang Dilayani (otomatis saat jadwal tiba), Selesai.",
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "cashier"
+                        ],
+                        "summary": "Daftar antrean kasir",
+                        "parameters": [
+                                {
+                                        "type": "string",
+                                        "description": "Tanggal (YYYY-MM-DD), default hari ini",
+                                        "name": "date",
+                                        "in": "query"
+                                }
+                        ],
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.cashierQueueResponse"
+                                        }
+                                },
+                                "400": {
+                                        "description": "Bad Request",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "403": {
+                                        "description": "Forbidden",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/cashier/summary": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Jumlah antrean menunggu, sedang dilayani, selesai, serta omzet dari transaksi Lunas pada tanggal tertentu.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "cashier"
-                ],
-                "summary": "Ringkasan dashboard kasir",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Tanggal (YYYY-MM-DD), default hari ini",
-                        "name": "date",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/main.cashierSummaryResponse"
+                "get": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "description": "Jumlah antrean menunggu, sedang dilayani, selesai, serta omzet dari transaksi Lunas pada tanggal tertentu.",
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "cashier"
+                        ],
+                        "summary": "Ringkasan dashboard kasir",
+                        "parameters": [
+                                {
+                                        "type": "string",
+                                        "description": "Tanggal (YYYY-MM-DD), default hari ini",
+                                        "name": "date",
+                                        "in": "query"
+                                }
+                        ],
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.cashierSummaryResponse"
+                                        }
+                                },
+                                "400": {
+                                        "description": "Bad Request",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "403": {
+                                        "description": "Forbidden",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/cashier/walk-in": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Kasir mencatat pelanggan yang datang langsung. Pembayaran dilakukan di kasir (Tunai, QRIS, Debit, Transfer) sehingga transaksi langsung Lunas. Jam booking memakai jam sekarang (WIB), lalu booking langsung masuk kursi (Sedang Dilayani) kalau barber dan kursi kosong; kalau tidak, tetap Dikonfirmasi sampai ada kursi.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "cashier"
-                ],
-                "summary": "Tambah pelanggan walk-in",
-                "parameters": [
-                    {
-                        "description": "Data walk-in",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.walkInRequest"
+                "post": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "description": "Kasir mencatat pelanggan yang datang langsung. Pembayaran dilakukan di kasir (Tunai, QRIS, Debit, Transfer) sehingga transaksi langsung Lunas. Jam booking memakai jam sekarang (WIB), lalu booking langsung masuk kursi (Sedang Dilayani) kalau barber dan kursi kosong; kalau tidak, tetap Dikonfirmasi sampai ada kursi.",
+                        "consumes": [
+                                "application/json"
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "cashier"
+                        ],
+                        "summary": "Tambah pelanggan walk-in",
+                        "parameters": [
+                                {
+                                        "description": "Data walk-in",
+                                        "name": "body",
+                                        "in": "body",
+                                        "required": true,
+                                        "schema": {
+                                                "$ref": "#/definitions/main.walkInRequest"
+                                        }
+                                }
+                        ],
+                        "responses": {
+                                "201": {
+                                        "description": "Created",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.cashierQueueItem"
+                                        }
+                                },
+                                "400": {
+                                        "description": "Bad Request",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "403": {
+                                        "description": "Forbidden",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "409": {
+                                        "description": "Conflict",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/main.cashierQueueItem"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/login": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Login user",
-                "parameters": [
-                    {
-                        "description": "Kredensial",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.loginRequest"
+                "post": {
+                        "consumes": [
+                                "application/json"
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "auth"
+                        ],
+                        "summary": "Login user",
+                        "parameters": [
+                                {
+                                        "description": "Kredensial",
+                                        "name": "body",
+                                        "in": "body",
+                                        "required": true,
+                                        "schema": {
+                                                "$ref": "#/definitions/main.loginRequest"
+                                        }
+                                }
+                        ],
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/logout": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Logout dan hapus sesi",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                "post": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "auth"
+                        ],
+                        "summary": "Logout dan hapus sesi",
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    }
                 }
-            }
         },
         "/my-tickets": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Menampilkan booking aktif milik pengguna, termasuk status transaksi pembayaran.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookings"
-                ],
-                "summary": "Tiket aktif, riwayat kunjungan, dan statistik user yang login",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/main.myTicketsResponse"
+                "get": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "description": "Menampilkan booking aktif milik pengguna, termasuk status transaksi pembayaran.",
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "bookings"
+                        ],
+                        "summary": "Tiket aktif, riwayat kunjungan, dan statistik user yang login",
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.myTicketsResponse"
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/payments/midtrans/notification": {
-            "post": {
-                "description": "Endpoint webhook publik untuk notifikasi transaksi Midtrans (Snap). Signature diverifikasi dengan SHA-512 dari order_id + status_code + gross_amount + MIDTRANS_SERVER_KEY. Status settlement dan capture dengan fraud_status accept menandai transaksi Lunas serta booking Dikonfirmasi; pending tetap Menunggu; deny, cancel, dan expire menandai Gagal serta membatalkan booking yang masih Menunggu. Status transaksi lain diabaikan dan tetap dibalas 200.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "payments"
-                ],
-                "summary": "Terima notifikasi pembayaran Midtrans",
-                "parameters": [
-                    {
-                        "description": "Payload notifikasi Midtrans",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.midtransNotification"
+                "post": {
+                        "description": "Endpoint webhook publik untuk notifikasi transaksi Midtrans (Snap). Signature diverifikasi dengan SHA-512 dari order_id + status_code + gross_amount + MIDTRANS_SERVER_KEY. Status settlement dan capture dengan fraud_status accept menandai transaksi Lunas serta booking Dikonfirmasi; pending tetap Menunggu; deny, cancel, dan expire menandai Gagal serta membatalkan booking yang masih Menunggu. Status transaksi lain diabaikan dan tetap dibalas 200.",
+                        "consumes": [
+                                "application/json"
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "payments"
+                        ],
+                        "summary": "Terima notifikasi pembayaran Midtrans",
+                        "parameters": [
+                                {
+                                        "description": "Payload notifikasi Midtrans",
+                                        "name": "body",
+                                        "in": "body",
+                                        "required": true,
+                                        "schema": {
+                                                "$ref": "#/definitions/main.midtransNotification"
+                                        }
+                                }
+                        ],
+                        "responses": {
+                                "200": {
+                                        "description": "Notifikasi diproses atau status transaksi diabaikan",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.midtransNotificationResponse"
+                                        }
+                                },
+                                "400": {
+                                        "description": "Payload JSON tidak valid",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.midtransNotificationError"
+                                        }
+                                },
+                                "401": {
+                                        "description": "Signature tidak valid",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.midtransNotificationError"
+                                        }
+                                },
+                                "405": {
+                                        "description": "Metode selain POST tidak diizinkan",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.midtransNotificationError"
+                                        }
+                                },
+                                "500": {
+                                        "description": "Gagal memperbarui transaksi atau melepas slot booking",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.midtransNotificationError"
+                                        }
+                                },
+                                "503": {
+                                        "description": "Payment gateway belum dikonfigurasi",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.midtransNotificationError"
+                                        }
+                                }
                         }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Notifikasi diproses atau status transaksi diabaikan",
-                        "schema": {
-                            "$ref": "#/definitions/main.midtransNotificationResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Payload JSON tidak valid",
-                        "schema": {
-                            "$ref": "#/definitions/main.midtransNotificationError"
-                        }
-                    },
-                    "401": {
-                        "description": "Signature tidak valid",
-                        "schema": {
-                            "$ref": "#/definitions/main.midtransNotificationError"
-                        }
-                    },
-                    "405": {
-                        "description": "Metode selain POST tidak diizinkan",
-                        "schema": {
-                            "$ref": "#/definitions/main.midtransNotificationError"
-                        }
-                    },
-                    "500": {
-                        "description": "Gagal memperbarui transaksi atau melepas slot booking",
-                        "schema": {
-                            "$ref": "#/definitions/main.midtransNotificationError"
-                        }
-                    },
-                    "503": {
-                        "description": "Payment gateway belum dikonfigurasi",
-                        "schema": {
-                            "$ref": "#/definitions/main.midtransNotificationError"
-                        }
-                    }
                 }
-            }
         },
         "/profile": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Ambil profil user yang sedang login",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                "get": {
+                        "security": [
+                                {
+                                        "BearerAuth": []
+                                }
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "user"
+                        ],
+                        "summary": "Ambil profil user yang sedang login",
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": true
+                                        }
+                                },
+                                "401": {
+                                        "description": "Unauthorized",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/register": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Registrasi user baru",
-                "parameters": [
-                    {
-                        "description": "Data registrasi",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.registerRequest"
+                "post": {
+                        "consumes": [
+                                "application/json"
+                        ],
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "auth"
+                        ],
+                        "summary": "Registrasi user baru",
+                        "parameters": [
+                                {
+                                        "description": "Data registrasi",
+                                        "name": "body",
+                                        "in": "body",
+                                        "required": true,
+                                        "schema": {
+                                                "$ref": "#/definitions/main.registerRequest"
+                                        }
+                                }
+                        ],
+                        "responses": {
+                                "201": {
+                                        "description": "Created",
+                                        "schema": {
+                                                "$ref": "#/definitions/main.registeredUser"
+                                        }
+                                },
+                                "400": {
+                                        "description": "Bad Request",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                },
+                                "409": {
+                                        "description": "Conflict",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/main.registeredUser"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/services": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "services"
-                ],
-                "summary": "Daftar layanan aktif",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/main.service"
+                "get": {
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "services"
+                        ],
+                        "summary": "Daftar layanan aktif",
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "array",
+                                                        "items": {
+                                                                "$ref": "#/definitions/main.service"
+                                                        }
+                                                }
+                                        }
+                                },
+                                "500": {
+                                        "description": "Internal Server Error",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
                                 }
-                            }
                         }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
                 }
-            }
         },
         "/status": {
-            "get": {
-                "description": "Memeriksa bahwa API Barber One aktif.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "system"
-                ],
-                "summary": "Status API",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                "get": {
+                        "description": "Memeriksa bahwa API Barber One aktif.",
+                        "produces": [
+                                "application/json"
+                        ],
+                        "tags": [
+                                "system"
+                        ],
+                        "summary": "Status API",
+                        "responses": {
+                                "200": {
+                                        "description": "OK",
+                                        "schema": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                        "type": "string"
+                                                }
+                                        }
+                                }
                         }
-                    }
                 }
-            }
         }
-    },
+},
     "definitions": {
         "main.availabilityResponse": {
             "type": "object",

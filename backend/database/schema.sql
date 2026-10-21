@@ -1,4 +1,4 @@
--- Schema Barber One: Tabel users, services, bookings, transactions
+-- Schema Barber One: users, services, barber, bookings, transactions, reviews
 
 -- 1. Tabel users
 CREATE TABLE IF NOT EXISTS users (
@@ -62,6 +62,15 @@ CREATE TABLE IF NOT EXISTS transactions (
     gateway_redirect_url TEXT,
     expires_at TIMESTAMPTZ,
     paid_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 6. Tabel reviews (satu review untuk setiap booking yang selesai)
+CREATE TABLE IF NOT EXISTS reviews (
+    id SERIAL PRIMARY KEY,
+    booking_id INT NOT NULL UNIQUE REFERENCES bookings(id) ON DELETE CASCADE,
+    rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indeks performa
