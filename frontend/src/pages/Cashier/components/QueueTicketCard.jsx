@@ -38,10 +38,10 @@ function whatsappLink(item, type) {
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
 }
 
-export default function QueueTicketCard({ item, type, now, busy, onFinish, onCancel }) {
+export default function QueueTicketCard({ item, type, now, busy, onStart, onFinish, onCancel }) {
   let badgeText = "MENUNGGU JADWAL";
   let timeLabel = `Jadwal Slot: ${item.booking_time} WIB`;
-  let footerText = `Otomatis masuk kursi jam ${item.booking_time} WIB saat barber & kursi kosong.`;
+  let footerText = `Bisa dimulai manual saat jadwal ${item.booking_time} WIB tiba dan kursi tersedia.`;
   if (type === "ongoing") {
     badgeText = `${chairLabel(item.chair_number)} • SEDANG BERJALAN`;
     timeLabel = `Jadwal: ${item.booking_time} WIB`;
@@ -57,6 +57,8 @@ export default function QueueTicketCard({ item, type, now, busy, onFinish, onCan
   const cancelLeft = started ? minutesLeft(item.started_at, CANCEL_AFTER_MINUTES, now) : null;
   const canFinish = started && finishLeft === 0;
   const canCancel = started && cancelLeft === 0;
+  const scheduleTime = new Date(`${item.booking_date}T${item.booking_time}:00+07:00`).getTime();
+  const canStart = type === "waiting" && item.status === "Dikonfirmasi" && item.payment_status === "Lunas" && now >= scheduleTime;
   const waLink = whatsappLink(item, type);
 
   function handleCancel() {
@@ -110,6 +112,7 @@ export default function QueueTicketCard({ item, type, now, busy, onFinish, onCan
         <div>{footerText}</div>
         {type !== "done" && (
           <div className="q-footer-actions">
+            {type === "waiting" && <button type="button" className="btn-dark" disabled={busy || !canStart} title={!canStart ? "Aktif setelah jadwal booking tiba dan pembayaran lunas" : "Mulai layanan"} onClick={onStart}>Sedang Dilayani</button>}
             <button
               type="button"
               className="btn-dark"

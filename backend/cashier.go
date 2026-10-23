@@ -406,6 +406,8 @@ func cashierBookingHandler(db *pgxpool.Pool, sessions *sessionStore) http.Handle
 		}
 
 		switch parts[4] {
+		case "start":
+			cashierStartService(w, r, db, bookingID)
 		case "finish":
 			cashierFinishService(w, r, db, bookingID)
 		case "cancel":
@@ -414,6 +416,66 @@ func cashierBookingHandler(db *pgxpool.Pool, sessions *sessionStore) http.Handle
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "Endpoint tidak ditemukan."})
 		}
 	}
+}
+
+// cashierStartService memulai layanan secara manual setelah jadwal tiba dan pembayaran lunas.
+func cashierStartService(w http.ResponseWriter, r *http.Request, db *pgxpool.Pool, bookingID int64) {
+	tx, err := db.Begin(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal memulai layanan."})
+		return
+	}
+	defer tx.Rollback(r.Context())
+	if _, err = tx.Exec(r.Context(), `SELECT pg_advisory_xact_lock(hashtext('barber-one-chairs'))`); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal mengunci kursi."})
+		return
+	}
+	var status string
+	var barberID int64
+	err = tx.QueryRow(r.Context(), `SELECT b.status, b.barber_id FROM bookings b
+		LEFT JOIN LATERAL (SELECT payment_status FROM transactions WHERE booking_id=b.id ORDER BY id DESC LIMIT 1) t ON TRUE
+		WHERE b.id=$1 AND (b.status='Dikonfirmasi' OR b.status='Menunggu') AND t.payment_status='Lunas'
+		AND b.booking_date + b.booking_time::time <= CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jakarta' FOR UPDATE OF b`, bookingID).Scan(&status, &barberID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		writeJSON(w, http.StatusConflict, map[string]string{"error": "Booking belum lunas, jadwal belum tiba, atau statusnya sudah berubah."})
+		return
+	}
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal memeriksa jadwal booking."})
+		return
+	}
+	var busy bool
+	if err = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM bookings WHERE barber_id=$1 AND status='Sedang Dilayani')`, barberID).Scan(&busy); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal memeriksa barber."})
+		return
+	}
+	if busy {
+		writeJSON(w, http.StatusConflict, map[string]string{"error": "Barber ini sedang melayani pelanggan lain."})
+		return
+	}
+	var chair int
+	if err = tx.QueryRow(r.Context(), `SELECT c FROM generate_series(1, $1) c WHERE NOT EXISTS (SELECT 1 FROM bookings WHERE status='Sedang Dilayani' AND chair_number=c) ORDER BY c LIMIT 1`, totalChairs).Scan(&chair); errors.Is(err, pgx.ErrNoRows) {
+		writeJSON(w, http.StatusConflict, map[string]string{"error": "Semua kursi sedang digunakan."})
+		return
+	} else if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal memeriksa kursi."})
+		return
+	}
+	_, err = tx.Exec(r.Context(), `UPDATE bookings SET status='Sedang Dilayani', chair_number=$1, started_at=CURRENT_TIMESTAMP, updated_at=CURRENT_TIMESTAMP WHERE id=$2`, chair, bookingID)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal memulai layanan."})
+		return
+	}
+	if err = tx.Commit(r.Context()); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Gagal menyimpan status layanan."})
+		return
+	}
+	item, err := queryCashierBooking(r, db, bookingID)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Layanan dimulai, tetapi gagal mengambil datanya."})
+		return
+	}
+	writeJSON(w, http.StatusOK, item)
 }
 
 // cashierFinishService godoc

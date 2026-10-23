@@ -264,6 +264,7 @@ export default function CashierDashboard() {
                 type={queueType(item)}
                 now={now + clockOffset}
                 busy={busyId === item.id}
+                onStart={() => handleAction(item, "start")}
                 onFinish={() => handleAction(item, "finish")}
                 onCancel={() => handleAction(item, "cancel")}
               />

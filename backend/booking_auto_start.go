@@ -74,6 +74,7 @@ func autoStartDueBookings(ctx context.Context, db *pgxpool.Pool) (int, error) {
 			SELECT payment_status FROM transactions WHERE booking_id = b.id ORDER BY id DESC LIMIT 1
 		) t ON TRUE
 		WHERE b.booking_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jakarta')::date
+		  AND b.user_id IS NULL
 		  AND b.booking_date + b.booking_time::time <= CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jakarta'
 		  AND (b.status = 'Dikonfirmasi' OR b.status = 'Menunggu')
 		  AND t.payment_status = 'Lunas'
