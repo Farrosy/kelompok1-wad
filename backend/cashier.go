@@ -520,6 +520,7 @@ func cashierFinishService(w http.ResponseWriter, r *http.Request, db *pgxpool.Po
 		return
 	}
 
+	notifyBookingUser(db, bookingID, "booking", "Layanan selesai", "Layanan "+item.ServiceName+" (tiket "+item.TicketCode+") sudah selesai. Terima kasih!")
 	item.Status = "Selesai"
 	writeJSON(w, http.StatusOK, item)
 }
@@ -566,6 +567,7 @@ func cashierCancelService(w http.ResponseWriter, r *http.Request, db *pgxpool.Po
 		return
 	}
 
+	notifyBookingUser(db, bookingID, "booking", "Booking dibatalkan", "Tiket "+item.TicketCode+" dibatalkan karena Anda tidak hadir. Pembayaran tidak dikembalikan.")
 	item.Status = "Batal"
 	writeJSON(w, http.StatusOK, item)
 }

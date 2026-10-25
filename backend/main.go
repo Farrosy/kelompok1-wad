@@ -77,6 +77,8 @@ func main() {
 	mux.HandleFunc("/api/cashier/summary", cashierSummaryHandler(db, sessions))
 	mux.HandleFunc("/api/cashier/walk-in", cashierWalkInHandler(db, sessions))
 	mux.HandleFunc("/api/cashier/bookings/", cashierBookingHandler(db, sessions))
+	mux.HandleFunc("/api/notifications", listNotificationsHandler(db, sessions))
+	mux.HandleFunc("/api/notifications/", notificationResourceHandler(db, sessions))
 	mux.HandleFunc("/api/status", apiStatusHandler)
 	mux.HandleFunc("/", apiStatusHandler)
 

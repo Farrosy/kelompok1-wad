@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../../config/api";
 import { useToast } from "../ToastProvider";
 import barberOneLogo from "../../assets/images/logo-barber-one.png";
+import NotificationBell from "./NotificationBell"
 import "./Navigation.css";
 
 const customerNavItems = [
@@ -127,14 +128,8 @@ export default function Navbar() {
 
           <span className="nav-separator-dot">•</span>
 
-          {/* Bell Notification */}
-          <button type="button" className="nav-icon-badge-btn" aria-label="Notifikasi">
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-            </svg>
-            <span className="bell-badge-dot" />
-          </button>
+                    {/* Bell Notification */}
+          <NotificationBell />
 
           {/* Profile Dropdown Container */}
           {profile ? <div className="cashier-profile-container" ref={profileMenuRef}>
@@ -217,6 +212,8 @@ export default function Navbar() {
           </NavLink>
         ))}
       </nav>
+      <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+      {profile && <NotificationBell />}
       {profile ? (
         <div className="cashier-profile-container" ref={profileMenuRef}>
           <button
@@ -244,6 +241,7 @@ export default function Navbar() {
       ) : (
         <button className="dashboard-logout" type="button" onClick={() => navigate("/login")}>Login</button>
       )}
+      </div>
     </header>
   );
 }
