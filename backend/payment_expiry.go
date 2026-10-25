@@ -44,6 +44,8 @@ func startPaymentExpiryWorker(db *pgxpool.Pool) {
 				log.Printf("payment expiry worker canceled %d expired booking(s)", tag.RowsAffected())
 			}
 
+			syncPaymentNotifications(db)
+
 			<-ticker.C
 		}
 	}()

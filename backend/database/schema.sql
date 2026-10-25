@@ -83,3 +83,23 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_bookings_barber_date_time_active
     WHERE status <> 'Batal';
 CREATE INDEX IF NOT EXISTS idx_transactions_booking_id ON transactions(booking_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_paid_at ON transactions(paid_at);
+
+-- 7. Tabel notifications (notifikasi untuk user dan kasir)
+-- audience 'user'  : notifikasi pribadi, wajib punya user_id.
+-- audience 'kasir' : notifikasi bersama untuk semua kasir/admin, user_id NULL.
+CREATE TABLE IF NOT EXISTS notifications (
+    id BIGSERIAL PRIMARY KEY,
+    audience VARCHAR(20) NOT NULL CHECK (audience IN ('user', 'kasir')),
+    user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+    type VARCHAR(30) NOT NULL, -- 'booking', 'payment'
+    title VARCHAR(150) NOT NULL,
+    message TEXT NOT NULL,
+    booking_id BIGINT REFERENCES bookings(id) ON DELETE CASCADE,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_read
+    ON notifications(user_id, is_read, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_audience_read
+    ON notifications(audience, is_read, created_at DESC);
