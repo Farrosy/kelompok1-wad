@@ -106,10 +106,13 @@ export default function Navbar() {
 
           <div className="brand-vertical-divider" />
 
-          {/* Segmented Tab */}
+          {/* Kasir & Pembayaran Pill */}
           <div className="cashier-tab-pill">
-            <button type="button" className="tab-pill-btn">Antrean &amp; POS</button>
-            <button type="button" className="tab-pill-btn active">Kasir &amp; Pembayaran</button>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="5" width="20" height="14" rx="2" />
+              <line x1="2" y1="10" x2="22" y2="10" />
+            </svg>
+            <span>Kasir &amp; Pembayaran</span>
           </div>
         </div>
 
