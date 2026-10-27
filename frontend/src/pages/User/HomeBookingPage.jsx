@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   MapPin,
   Clock,
   Star,
   CheckCircle,
+  CircleAlert,
   ChevronDown,
   Calendar,
   User,
@@ -112,6 +113,14 @@ export default function HomeBookingPage() {
   const [availableSlots, setAvailableSlots] = useState(null);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [availabilityError, setAvailabilityError] = useState("");
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const servicesSectionRef = useRef(null);
+  const barberStepRef = useRef(null);
+  const scheduleStepRef = useRef(null);
+  const customerStepRef = useRef(null);
+  const customerNameInputRef = useRef(null);
+  const customerPhoneInputRef = useRef(null);
 
   useEffect(() => {
     const savedAt = Date.now();
@@ -219,14 +228,76 @@ export default function HomeBookingPage() {
   const total = selectedServiceObjs.reduce((sum, s) => sum + Number(s.price), 0);
   const barberObj = barbers.find((b) => b.id === selectedBarber);
 
+  function validateBookingForm() {
+    const errors = {};
+    let firstErrorRef = null;
+
+    if (selectedServices.length === 0) {
+      errors.service = "Silakan pilih salah satu layanan barber terlebih dahulu";
+      if (!firstErrorRef) firstErrorRef = servicesSectionRef;
+    }
+
+    if (!selectedBarber) {
+      errors.barber = "Silakan pilih barber / kapster terlebih dahulu";
+      if (!firstErrorRef) firstErrorRef = barberStepRef;
+    }
+
+    if (!selectedDay || !selectedTime) {
+      if (!selectedDay && !selectedTime) {
+        errors.schedule = "Silakan pilih tanggal dan jam slot kunjungan";
+      } else if (!selectedDay) {
+        errors.schedule = "Silakan pilih tanggal kunjungan terlebih dahulu";
+      } else {
+        errors.schedule = "Silakan pilih jam slot kunjungan terlebih dahulu";
+      }
+      if (!firstErrorRef) firstErrorRef = scheduleStepRef;
+    }
+
+    if (!customerName.trim()) {
+      errors.customerName = "Nama lengkap wajib diisi";
+      if (!firstErrorRef) firstErrorRef = customerNameInputRef;
+    }
+
+    if (!customerPhone.trim()) {
+      errors.customerPhone = "Nomor WA/telepon wajib diisi";
+      if (!firstErrorRef) firstErrorRef = customerPhoneInputRef;
+    }
+
+    return { errors, firstErrorRef };
+  }
+
   function toggleService(id) {
-    setSelectedServices((previous) => (previous[0] === id ? [] : [id]));
+    setSelectedServices((previous) => {
+      const next = previous[0] === id ? [] : [id];
+      if (next.length > 0) {
+        setValidationErrors((prev) => {
+          if (!prev.service) return prev;
+          const updated = { ...prev };
+          delete updated.service;
+          return updated;
+        });
+      }
+      return next;
+    });
     setSelectedTime(null);
   }
 
   async function handleBook(e) {
-    e.preventDefault();
-    if (!selectedBarber || selectedServices.length === 0 || !selectedDay || !selectedTime) return;
+    if (e) e.preventDefault();
+
+    const { errors, firstErrorRef } = validateBookingForm();
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      if (firstErrorRef?.current) {
+        firstErrorRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (typeof firstErrorRef.current.focus === "function") {
+          firstErrorRef.current.focus();
+        }
+      }
+      return;
+    }
+
+    setValidationErrors({});
 
     const token = localStorage.getItem("barber-one-token") || sessionStorage.getItem("barber-one-token");
     if (!token) {
@@ -347,17 +418,23 @@ export default function HomeBookingPage() {
       </section>
 
       {/* ── SERVICES ── */}
-      <section className="hb-services">
+      <section className="hb-services" ref={servicesSectionRef}>
         <div className="hb-section-inner">
           <p className="hb-services-eyebrow">PILIHAN GROOMING</p>
           <h2 className="hb-services-title">Layanan Barber One Atelier</h2>
           <p>Pilih satu layanan untuk setiap booking.</p>
+          {validationErrors.service && (
+            <div className="hb-field-error-banner" role="alert">
+              <CircleAlert size={16} />
+              <span>{validationErrors.service}</span>
+            </div>
+          )}
           {servicesLoading && <p role="status">Memuat layanan...</p>}
           {servicesError && <p role="alert">{servicesError}</p>}
           {!servicesLoading && !servicesError && services.length === 0 && (
             <p>Belum ada layanan yang tersedia.</p>
           )}
-          <div className="hb-services-grid">
+          <div className={`hb-services-grid${validationErrors.service ? " has-error" : ""}`}>
             {services.map((svc) => {
               const isChosen = selectedServices.includes(svc.id);
               return (
@@ -444,9 +521,12 @@ export default function HomeBookingPage() {
           ) : (
             <div className="hb-booking-layout">
               {/* Left – Steps */}
-              <form className="hb-booking-form" onSubmit={handleBook}>
+              <form className="hb-booking-form" onSubmit={handleBook} noValidate>
                 {/* STEP 1 – Barber */}
-                <div className="hb-step">
+                <div
+                  className={`hb-step${validationErrors.barber ? " is-validation-error" : ""}`}
+                  ref={barberStepRef}
+                >
                   <div className="hb-step-header">
                     <span className="hb-step-num">1</span>
                     <h3 className="hb-step-title">Pilih Barber / Kapster</h3>
@@ -454,12 +534,20 @@ export default function HomeBookingPage() {
                       {barbers.filter((b) => b.available).length} tersedia hari ini
                     </span>
                   </div>
+
+                  {validationErrors.barber && (
+                    <div className="hb-field-error-banner" role="alert">
+                      <CircleAlert size={16} />
+                      <span>{validationErrors.barber}</span>
+                    </div>
+                  )}
+
                   {barbersLoading && <p role="status">Memuat daftar barber...</p>}
                   {barbersError && <p role="alert">{barbersError}</p>}
                   {!barbersLoading && !barbersError && barbers.length === 0 && (
                     <p>Belum ada barber yang tersedia.</p>
                   )}
-                  <div className="hb-barber-grid">
+                  <div className={`hb-barber-grid${validationErrors.barber ? " has-error" : ""}`}>
                     {barbers.map((b) => (
                       <label
                         key={b.id}
@@ -474,6 +562,12 @@ export default function HomeBookingPage() {
                           onChange={() => {
                             setSelectedBarber(b.id);
                             setSelectedTime(null);
+                            setValidationErrors((prev) => {
+                              if (!prev.barber) return prev;
+                              const updated = { ...prev };
+                              delete updated.barber;
+                              return updated;
+                            });
                           }}
                           className="hb-sr-only"
                         />
@@ -511,14 +605,24 @@ export default function HomeBookingPage() {
                 </div>
 
                 {/* STEP 2 – Date & Time */}
-                <div className="hb-step">
+                <div
+                  className={`hb-step${validationErrors.schedule ? " is-validation-error" : ""}`}
+                  ref={scheduleStepRef}
+                >
                   <div className="hb-step-header">
                     <span className="hb-step-num">2</span>
                     <h3 className="hb-step-title">Pilih Tanggal &amp; Jam</h3>
                     <span className="hb-step-avail">Jadwal 4 hari ke depan</span>
                   </div>
 
-                  <div className="hb-day-row">
+                  {validationErrors.schedule && (
+                    <div className="hb-field-error-banner" role="alert">
+                      <CircleAlert size={16} />
+                      <span>{validationErrors.schedule}</span>
+                    </div>
+                  )}
+
+                  <div className={`hb-day-row${validationErrors.schedule && !selectedDay ? " has-error" : ""}`}>
                     {DAYS.map((d) => (
                       <button
                         key={d.value}
@@ -527,6 +631,10 @@ export default function HomeBookingPage() {
                         onClick={() => {
                           setSelectedDay(d.value);
                           setSelectedTime(null);
+                          setValidationErrors((prev) => {
+                            if (!prev.schedule) return prev;
+                            return { ...prev, schedule: "Silakan pilih jam slot kunjungan" };
+                          });
                         }}
                       >
                         <span className="hb-day-name">{d.day}</span>
@@ -546,7 +654,7 @@ export default function HomeBookingPage() {
                   ) : availableSlots?.length === 0 ? (
                     <p className="hb-availability-hint">Tidak ada slot tersedia untuk pilihan ini.</p>
                   ) : null}
-                  <div className="hb-time-grid">
+                  <div className={`hb-time-grid${validationErrors.schedule && selectedDay && !selectedTime ? " has-error" : ""}`}>
                     {TIME_SLOTS.map((t) => {
                       const needsAvailability = selectedBarber && selectedDay && selectedServices.length > 0;
                       const slotUnavailable = needsAvailability && (availabilityLoading || Boolean(availabilityError) || !availableSlots?.includes(t));
@@ -556,7 +664,18 @@ export default function HomeBookingPage() {
                         type="button"
                         className={`hb-time-btn${selectedTime === t ? " is-active" : ""}${slotUnavailable ? " is-unavailable" : ""}`}
                         disabled={slotUnavailable}
-                        onClick={() => setSelectedTime(t)}
+                        onClick={() => {
+                          setSelectedTime(t);
+                          setValidationErrors((prev) => {
+                            if (!prev.schedule) return prev;
+                            if (selectedDay) {
+                              const updated = { ...prev };
+                              delete updated.schedule;
+                              return updated;
+                            }
+                            return { ...prev, schedule: "Silakan pilih tanggal kunjungan terlebih dahulu" };
+                          });
+                        }}
                       >
                         {t}
                         <br />
@@ -568,7 +687,10 @@ export default function HomeBookingPage() {
                 </div>
 
                 {/* STEP 3 – Customer */}
-                <div className="hb-step">
+                <div
+                  className={`hb-step${(validationErrors.customerName || validationErrors.customerPhone) ? " is-validation-error" : ""}`}
+                  ref={customerStepRef}
+                >
                   <div className="hb-step-header">
                     <span className="hb-step-num">3</span>
                     <h3 className="hb-step-title">
@@ -584,33 +706,60 @@ export default function HomeBookingPage() {
                         <div className="hb-input-wrap">
                           <User size={14} className="hb-input-icon" />
                           <input
+                            ref={customerNameInputRef}
                             type="text"
-                            className="hb-input"
+                            className={`hb-input${validationErrors.customerName ? " has-error" : ""}`}
                             placeholder="Nama Anda"
                             value={customerName}
-                            onChange={(e) => setCustomerName(e.target.value)}
+                            onChange={(e) => {
+                              setCustomerName(e.target.value);
+                              if (e.target.value.trim()) {
+                                setValidationErrors((prev) => {
+                                  if (!prev.customerName) return prev;
+                                  const updated = { ...prev };
+                                  delete updated.customerName;
+                                  return updated;
+                                });
+                              }
+                            }}
                             required
                           />
                         </div>
+                        {validationErrors.customerName && (
+                          <span className="hb-input-error-msg">{validationErrors.customerName}</span>
+                        )}
                       </div>
                       <div className="hb-form-group">
                         <label className="hb-form-label">NOMOR WA/TELEPON</label>
                         <div className="hb-input-wrap">
                           <span className="hb-phone-prefix">+62</span>
                           <input
+                            ref={customerPhoneInputRef}
                             type="tel"
-                            className="hb-input hb-input-phone"
+                            className={`hb-input hb-input-phone${validationErrors.customerPhone ? " has-error" : ""}`}
                             placeholder="8xxx-xxxx-xxxx"
                             inputMode="numeric"
                             autoComplete="tel-national"
                             maxLength={13}
                             value={customerPhone}
-                            onChange={(e) =>
-                              setCustomerPhone(e.target.value.replace(/\D/g, "").slice(0, 13))
-                            }
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, "").slice(0, 13);
+                              setCustomerPhone(val);
+                              if (val.trim()) {
+                                setValidationErrors((prev) => {
+                                  if (!prev.customerPhone) return prev;
+                                  const updated = { ...prev };
+                                  delete updated.customerPhone;
+                                  return updated;
+                                });
+                              }
+                            }}
                             required
                           />
                         </div>
+                        {validationErrors.customerPhone && (
+                          <span className="hb-input-error-msg">{validationErrors.customerPhone}</span>
+                        )}
                       </div>
                     </div>
                     <div className="hb-form-group">
@@ -628,24 +777,23 @@ export default function HomeBookingPage() {
                   </div>
                 </div>
 
+                {Object.keys(validationErrors).length > 0 && (
+                  <div className="hb-submit-validation-alert" role="alert">
+                    <CircleAlert size={16} />
+                    <span>Pemesanan belum lengkap. Harap lengkapi pilihan layanan dan jadwal di atas.</span>
+                  </div>
+                )}
+
                 <button
                   className="hb-submit-btn"
                   type="submit"
-                  disabled={
-                    !selectedBarber ||
-                    selectedServices.length === 0 ||
-                    !selectedDay ||
-                    !selectedTime ||
-                    !customerName ||
-                    !customerPhone ||
-                    bookingSubmitting
-                  }
+                  disabled={bookingSubmitting}
                 >
                   <Calendar size={16} />
                   {bookingSubmitting ? "MENYIMPAN BOOKING..." : "DAFTAR BOOKING & KONFIRMASI SLOT"}
                   <ChevronDown size={16} />
                 </button>
-                {bookingError && <p role="alert">{bookingError}</p>}
+                {bookingError && <p className="hb-booking-error-alert" role="alert">{bookingError}</p>}
               </form>
 
               {/* Right – Summary */}

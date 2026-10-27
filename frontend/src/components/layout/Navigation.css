@@ -147,31 +147,24 @@
   background-color: #e5e0d8;
 }
 
-/* Tabs Antrean & POS */
+/* Kasir & Pembayaran Pill */
 .cashier-tab-pill {
-  background: #f4f2ed;
-  padding: 3px;
-  border-radius: 8px;
   display: flex;
-  gap: 2px;
-}
-
-.tab-pill-btn {
-  background: transparent;
-  border: none;
+  align-items: center;
+  gap: 6px;
+  background: #f7f6f2;
+  border: 1px solid #ede8e1;
+  padding: 5px 12px;
+  border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
-  color: #635b52;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
+  color: #2b2620;
   white-space: nowrap;
 }
 
-.tab-pill-btn.active {
-  background: #ffffff;
-  color: #1a1714;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+.cashier-tab-pill svg {
+  color: #4a433c;
+  flex-shrink: 0;
 }
 
 /* Branch selector */
